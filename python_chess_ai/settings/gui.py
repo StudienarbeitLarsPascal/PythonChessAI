@@ -7,7 +7,7 @@
 # GUI implementation for settings interface
 #
 
-from python_chess_ai.settings.interface import SettingsInterface
+from settings.interface import SettingsInterface
 
 
 class Settings(SettingsInterface):

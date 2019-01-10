@@ -15,9 +15,9 @@ PLAYER_TYPE_MAX = 4
 DIFFICULTY_MIN = 1
 DIFFICULTY_MAX = 3
 
-from python_chess_ai.player import ai, api, dummy, user
-from python_chess_ai.settings.interface import SettingsInterface
-from python_chess_ai.misc.tools import Tools
+from player import ai, api, dummy, user
+from settings.interface import SettingsInterface
+from misc.tools import Tools
 
 
 class Settings(SettingsInterface):

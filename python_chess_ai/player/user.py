@@ -7,9 +7,9 @@
 # Implementation of player interface for user given input
 #
 
-from python_chess_ai.player.interface import PlayerInterface
-from python_chess_ai.player.user_input import terminal, gui
-import python_chess_ai.misc.chess_tools  as chess_tools
+from player.interface import PlayerInterface
+from player.user_input import terminal, gui
+import misc.chess_tools  as chess_tools
 
 import chess
 

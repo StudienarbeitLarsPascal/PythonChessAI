@@ -7,7 +7,7 @@
 # Implementation of player interface for random moves (dummy)
 #
 
-from python_chess_ai.player.interface import PlayerInterface
+from player.interface import PlayerInterface
 
 import random
 

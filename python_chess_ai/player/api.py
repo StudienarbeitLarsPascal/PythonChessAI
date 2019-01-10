@@ -7,7 +7,7 @@
 # Implementation of player interface for API given input
 #
 
-from python_chess_ai.player.interface import PlayerInterface
+from player.interface import PlayerInterface
 
 
 class Player(PlayerInterface):

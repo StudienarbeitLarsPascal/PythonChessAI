@@ -6,7 +6,7 @@
 #
 # GUI implementation for user_input interface
 #
-from python_chess_ai.player.user_input.interface import UserInputInterface
+from player.user_input.interface import UserInputInterface
 
 
 class UserInput(UserInputInterface):

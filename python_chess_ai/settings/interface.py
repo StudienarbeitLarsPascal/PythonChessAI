@@ -8,7 +8,7 @@
 #
 
 from abc import ABC, ABCMeta, abstractmethod
-from python_chess_ai.settings.player_settings import PlayerSettings
+from settings.player_settings import PlayerSettings
 
 
 class SettingsInterface(ABC):

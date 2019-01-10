@@ -4,13 +4,13 @@
 # This file is part of the python-chess-ai.
 # Copyright (C) 2018 Lars Dittert <lars.dittert@de.ibm.com> and Pascal Schroeder <pascal.schroeder@de.ibm.com>
 #
-# This file is the main file which starts the chess programm and calls the elementary methods
+# This file is the main file which starts the chess program and calls the elementary methods
 #
 
-from python_chess_ai.settings import terminal, gui
-from python_chess_ai.chess_master import ChessMaster
-from python_chess_ai.misc.tools import Tools
-from python_chess_ai.player import ai, api, dummy, user
+from settings import terminal, gui
+from chess_master import ChessMaster
+from misc.tools import Tools
+from player import ai, api, dummy, user
 
 USER_INPUT_MESSAGE = "Enter 0 for terminal and 1 for GUI: "
 
@@ -40,4 +40,5 @@ type_switcher = {
     4: dummy
 }
 
-main()
+if __name__ == '__main__':
+    main()

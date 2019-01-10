@@ -7,8 +7,8 @@
 # Terminal implementation for user_input interface
 #
 
-from python_chess_ai.player.user_input.interface import UserInputInterface
-from python_chess_ai.misc.tools import Tools
+from player.user_input.interface import UserInputInterface
+from misc.tools import Tools
 
 ASK_FOR_MOVE_MESSAGE = "Possible Moves: {}\nEnter your move: "
 WRONG_INPUT_MESSAGE = "Given move not in legal moves. Please repeat"
