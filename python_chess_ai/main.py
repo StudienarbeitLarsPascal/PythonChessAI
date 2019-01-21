@@ -10,7 +10,6 @@
 import argparse
 from settings import terminal, gui
 from chess_master import ChessMaster
-from misc.tools import Tools
 from player import ai, api, dummy, user
 
 # usage argument parser: [-h][-t | -g][-v]
@@ -21,10 +20,10 @@ ui_group.add_argument("-g", "--gui", help="starts the GUI", action="store_true")
 parser.add_argument("-v", "--version", help="print the version number and exit", action="store_true")
 args = parser.parse_args()
 def main():
-    if args.gui or (not (args.terminal) and not (args.gui)):
-        ui_status = 1
-    elif args.terminal:
+    if args.terminal or (not (args.terminal) and not (args.gui)):
         ui_status = 0
+    elif args.terminal:
+        ui_status = 1
     elif args.version:
         print("ToDo Version")
 

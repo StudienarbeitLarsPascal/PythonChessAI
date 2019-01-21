@@ -18,7 +18,6 @@ class PlayerInterface(ABC):
         self.num = num
         self.name = name
         self.ui_status = ui_status
-        self.difficulty = difficulty
 
     @abstractmethod
     def get_move(self, board):

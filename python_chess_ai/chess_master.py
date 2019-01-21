@@ -24,7 +24,10 @@ class ChessMaster:
                 current_player = players[int(board.turn)]
                 current_player.print_board(current_player.name, board)
                 move = current_player.get_move(board)
+                print(move)
                 board.push(move)
+
+                print(board)
                 current_player.submit_move(move)
 
             repeat = int(input(GAME_FINISHED_MESSAGE))

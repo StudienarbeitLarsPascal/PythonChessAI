@@ -39,7 +39,7 @@ class SettingsInterface(ABC):
 
             difficulty = None
             if player_type == 2:
-                difficulty = self.get_difficulty()
+                difficulty = self.get_difficulty(num)
 
             new_player = PlayerSettings(num, name, player_type, difficulty)
             players.append(new_player)

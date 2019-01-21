@@ -8,7 +8,7 @@
 #
 
 from player.user_input.interface import UserInputInterface
-from misc.tools import Tools
+import misc.tools as Tools
 
 ASK_FOR_MOVE_MESSAGE = "Possible Moves: {}\nEnter your move: "
 WRONG_INPUT_MESSAGE = "Given move not in legal moves. Please repeat"
