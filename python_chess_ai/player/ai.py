@@ -18,7 +18,7 @@ HISTORY_FILE_LOC = "res/history.csv"
 class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
-        self.evaluation_funcs = self.get_evaluation_funcs_by_dif(difficulty)
+        self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
 
     def get_move(self, board):
         super().get_move(board)
@@ -28,7 +28,6 @@ class Player(PlayerInterface):
             board_evaluations[move] = self.evaluate_move(board, move)
 
         print(board_evaluations)
-        print(board_evaluations.values())
 
         # todo: highest or lowest val dependent on color
         return Tools.get_key_with_max_val(board_evaluations)
@@ -49,16 +48,15 @@ class Player(PlayerInterface):
 
     def evaluate_board(self, board):
         evaluation_val = 0
-        for func in self.evaluation_funcs:
-            # Todo: rate evaluation functions
-            evaluation_val += func(board)
+        for func, value in self.evaluation_funcs_dict.items():
+            evaluation_val += value * func(board)
         return evaluation_val
 
     def get_evaluation_funcs_by_dif(self, difficulty):
         funcs_by_deg_of_dif = {
-            1: [self.get_board_value],
-            2: [self.get_board_value, self.get_attacked_figures_val],
-            3: [self.get_board_value, self.get_attacked_figures_val, self.compare_board_history]
+            1: {self.get_board_value: 1},
+            2: {self.get_board_value: 1, self.get_attacked_figures_val: 1/2},
+            3: {self.get_board_value: 1, self.get_attacked_figures_val: 1/2, self.compare_board_history: 5}
         }
         return funcs_by_deg_of_dif.get(difficulty)
 
