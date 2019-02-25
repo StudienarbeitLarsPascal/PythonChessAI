@@ -11,7 +11,9 @@ from player.interface import PlayerInterface
 import misc.tools as Tools
 import misc.chess_tools as ChessTools
 import chess
+import pandas as pd
 
+HISTORY_FILE_LOC = "res/history.csv"
 
 class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty):
@@ -48,6 +50,7 @@ class Player(PlayerInterface):
     def evaluate_board(self, board):
         evaluation_val = 0
         for func in self.evaluation_funcs:
+            # Todo: rate evaluation functions
             evaluation_val += func(board)
         return evaluation_val
 
@@ -67,6 +70,8 @@ class Player(PlayerInterface):
 
     # todo: find better name
     def compare_board_history(self, board):
-        # todo: implement
-        return 0
+        dataset = pd.read_csv(HISTORY_FILE_LOC)
+        row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
+        value = row['value'].item() if len(row['value'])==1 else 0
+        return value
 

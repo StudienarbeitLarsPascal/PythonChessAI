@@ -25,6 +25,7 @@ class Player(PlayerInterface):
 
     def get_move(self, board):
         super().get_move(board)
+        # Todo: Check for surrender
         legal_moves = chess_tools.get_legal_moves_uci(board)
         move = None
         while move not in legal_moves:
