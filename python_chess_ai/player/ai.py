@@ -12,8 +12,10 @@ import misc.tools as Tools
 import misc.chess_tools as ChessTools
 import chess
 import pandas as pd
+import time
 
 HISTORY_FILE_LOC = "res/history.csv"
+TIME_LIMIT = 1
 
 class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty):
@@ -22,15 +24,18 @@ class Player(PlayerInterface):
 
     def get_move(self, board):
         super().get_move(board)
-
-        board_evaluations = dict()
+        depth = 2
+        best_move_val = float('-inf')
         for move in board.legal_moves:
-            board_evaluations[move] = self.evaluate_move(board, move)
-
-        print(board_evaluations)
-
+            tmp_board = chess.Board(str(board.fen()))
+            tmp_board.push(move)
+            value = self.alpha_beta_pruning(tmp_board, depth, True)
+            if value >= best_move_val:
+                best_move_val = value
+                best_move = move
+        return best_move
         # todo: highest or lowest val dependent on color
-        return Tools.get_key_with_max_val(board_evaluations)
+        # return Tools.get_key_with_max_val(board_evaluations)
 
     def submit_move(self, move):
         super().submit_move(move)
@@ -38,13 +43,47 @@ class Player(PlayerInterface):
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
 
-    def evaluate_move(self, board, move):
-        # todo: implement iterative deepening for possibles move
+    # def iterative_deepening_search(self, board):
+    #     start_time = time.time()
+    #     end_time = start_time + TIME_LIMIT
+    #     depth = 1
+    #
+    #     while(True):
+    #         current_time = time.time()
+    #         if(current_time >= end_time):
+    #             break
+    #
+    #         print(f"depth {depth}")
+    #         evaluation = self.evaluate_board_by_depth(board, depth, float('-inf'), current_time, end_time - current_time)
+    #         depth+=1
+    #
+    #     return evaluation
 
-        tmp_board = chess.Board(str(board.fen()))
-        tmp_board.push(move)
 
-        return self.evaluate_board(tmp_board)
+    def alpha_beta_pruning(self, board, depth, player, alpha = float('-inf'), beta = float('inf')):
+        if depth == 0:
+            return self.evaluate_board(board)
+
+        if player:
+            best_move = float('-inf')
+            for move in board.legal_moves:
+                tmp_board = chess.Board(str(board.fen()))
+                tmp_board.push(move)
+                best_move = max(best_move, self.alpha_beta_pruning(tmp_board, depth - 1, player, alpha, beta))
+                alpha = max(alpha, best_move)
+                if beta <= alpha:
+                    return best_move
+            return best_move
+        else:
+            best_move = float('inf')
+            for move in board.legal_moves:
+                tmp_board = chess.Board(str(board.fen()))
+                tmp_board.push(move)
+                best_move = min(best_move, self.alpha_beta_pruning(tmp_board, depth - 1, player, alpha, beta))
+                beta = min(beta, best_move)
+                if beta <= alpha:
+                    return best_move
+            return best_move
 
     def evaluate_board(self, board):
         evaluation_val = 0
