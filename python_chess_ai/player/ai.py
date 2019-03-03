@@ -8,6 +8,7 @@
 #
 
 from player.interface import PlayerInterface
+
 import misc.tools as Tools
 import misc.chess_tools as ChessTools
 import chess
@@ -15,25 +16,42 @@ import pandas as pd
 import time
 
 HISTORY_FILE_LOC = "res/history.csv"
-TIME_LIMIT = 1
 
 class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
+        self.time_limit = self.get_timeout_by_dif(difficulty)
 
     def get_move(self, board):
         super().get_move(board)
-        depth = 2
-        best_move_val = float('-inf')
-        for move in board.legal_moves:
-            tmp_board = chess.Board(str(board.fen()))
-            tmp_board.push(move)
-            value = self.alpha_beta_pruning(tmp_board, depth, True)
-            if value >= best_move_val:
-                best_move_val = value
-                best_move = move
-        return best_move
+
+        start_time = int(time.time())
+        end_time = start_time + self.time_limit
+        depth = 1
+
+        overall_best_move = None
+        overall_best_move_val = 0
+
+        current_time = start_time
+
+        while current_time < end_time:
+            best_move_val = float('-inf')
+            for move in board.legal_moves:
+                tmp_board = chess.Board(str(board.fen()))
+                tmp_board.push(move)
+                # Todo: Check if board.turn works
+                value = self.alpha_beta_pruning(tmp_board, depth, board.turn, end_time)
+                if value >= best_move_val:
+                    best_move_val = value
+                    best_move = move
+            if best_move_val > overall_best_move_val:
+                overall_best_move_val = best_move_val
+                overall_best_move = best_move
+            depth += 1
+            current_time = int(time.time())
+
+        return overall_best_move
         # todo: highest or lowest val dependent on color
         # return Tools.get_key_with_max_val(board_evaluations)
 
@@ -59,9 +77,8 @@ class Player(PlayerInterface):
     #
     #     return evaluation
 
-
-    def alpha_beta_pruning(self, board, depth, player, alpha = float('-inf'), beta = float('inf')):
-        if depth == 0:
+    def alpha_beta_pruning(self, board, depth, player, end_time, alpha = float('-inf'), beta = float('inf')):
+        if depth == 0 or int(time.time()) >= end_time:
             return self.evaluate_board(board)
 
         if player:
@@ -98,6 +115,14 @@ class Player(PlayerInterface):
             3: {self.get_board_value: 1, self.get_attacked_figures_val: 1/2, self.compare_board_history: 5}
         }
         return funcs_by_deg_of_dif.get(difficulty)
+
+    def get_timeout_by_dif(self, difficulty):
+        time_limit = {
+            1: 5,
+            2: 10,
+            3: 20
+        }
+        return time_limit.get(difficulty)
 
     def get_board_value(self, board):
         return ChessTools.get_board_value(board)
