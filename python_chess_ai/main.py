@@ -19,6 +19,7 @@ ui_group.add_argument("-t", "--terminal", help="starts the terminal ui", action=
 ui_group.add_argument("-g", "--gui", help="starts the GUI", action="store_true")
 parser.add_argument("-v", "--version", help="print the version number and exit", action="store_true")
 args = parser.parse_args()
+
 def main():
     if args.terminal or (not (args.terminal) and not (args.gui)):
         ui_status = 0
@@ -27,27 +28,31 @@ def main():
     elif args.version:
         print("ToDo Version")
 
-    settings_ui = ui_switcher.get(ui_status).Settings()
+    settings_ui = get_ui(ui_status).Settings()
     player_settings = settings_ui.interrogate_settings()
     players = []
     for player_setting in player_settings:
-        type = type_switcher.get(player_setting.type)
+        type = get_player_by_type(player_setting.type)
         players.append(type.Player(player_setting.num, player_setting.name, ui_status, player_setting.difficulty))
 
     chess_master = ChessMaster()
     chess_master.start_chess_game(players)
 
-ui_switcher = {
-    0: terminal,
-    1: gui
-}       
+def get_ui(ui_status):
+    ui_switcher = {
+        0: terminal,
+        1: gui
+    }
+    return ui_switcher.get(ui_status)
 
-type_switcher = {
-    1: user,
-    2: ai,
-    3: api,
-    4: dummy
-}
+def get_player_by_type(type):
+    type_switcher = {
+        1: user,
+        2: ai,
+        3: api,
+        4: dummy
+    }
+    return type_switcher.get(type)
 
 if __name__ == '__main__':
     main()

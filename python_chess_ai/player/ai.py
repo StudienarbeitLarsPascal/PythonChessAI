@@ -17,7 +17,9 @@ import time
 
 HISTORY_FILE_LOC = "res/history.csv"
 
+
 class Player(PlayerInterface):
+
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
@@ -26,8 +28,22 @@ class Player(PlayerInterface):
     def get_move(self, board):
         super().get_move(board)
 
-        start_time = int(time.time())
-        end_time = start_time + self.time_limit
+        # Todo: Add opening book
+        if False:
+            pass
+        else :
+            start_time = int(time.time())
+            end_time = start_time + self.time_limit
+
+            return self.iterative_deepening(board, start_time, end_time)
+
+    def submit_move(self, move):
+        super().submit_move(move)
+
+    def print_board(self, player_name, board):
+        super().print_board(player_name, board)
+
+    def iterative_deepening(self, board, start_time, end_time):
         depth = 1
 
         overall_best_move = None
@@ -52,32 +68,8 @@ class Player(PlayerInterface):
             current_time = int(time.time())
 
         return overall_best_move
-        # todo: highest or lowest val dependent on color
-        # return Tools.get_key_with_max_val(board_evaluations)
 
-    def submit_move(self, move):
-        super().submit_move(move)
-
-    def print_board(self, player_name, board):
-        super().print_board(player_name, board)
-
-    # def iterative_deepening_search(self, board):
-    #     start_time = time.time()
-    #     end_time = start_time + TIME_LIMIT
-    #     depth = 1
-    #
-    #     while(True):
-    #         current_time = time.time()
-    #         if(current_time >= end_time):
-    #             break
-    #
-    #         print(f"depth {depth}")
-    #         evaluation = self.evaluate_board_by_depth(board, depth, float('-inf'), current_time, end_time - current_time)
-    #         depth+=1
-    #
-    #     return evaluation
-
-    def alpha_beta_pruning(self, board, depth, player, end_time, alpha = float('-inf'), beta = float('inf')):
+    def alpha_beta_pruning(self, board, depth, player, end_time, alpha=float('-inf'), beta=float('inf')):
         if depth == 0 or int(time.time()) >= end_time:
             return self.evaluate_board(board)
 
@@ -116,7 +108,8 @@ class Player(PlayerInterface):
         }
         return funcs_by_deg_of_dif.get(difficulty)
 
-    def get_timeout_by_dif(self, difficulty):
+    @staticmethod
+    def get_timeout_by_dif(difficulty):
         time_limit = {
             1: 5,
             2: 10,
@@ -124,16 +117,18 @@ class Player(PlayerInterface):
         }
         return time_limit.get(difficulty)
 
-    def get_board_value(self, board):
+    @staticmethod
+    def get_board_value(board):
         return ChessTools.get_board_value(board)
 
-    def get_attacked_figures_val(self, board):
+    @staticmethod
+    def get_attacked_figures_val(board):
         return ChessTools.get_attacked_pieces_value(board)
 
-    # todo: find better name
-    def compare_board_history(self, board):
+    @staticmethod
+    def compare_board_history(board):
         dataset = pd.read_csv(HISTORY_FILE_LOC)
         row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
-        value = row['value'].item() if len(row['value'])==1 else 0
+        value = row['value'].item() if len(row['value']) == 1 else 0
         return value
 
