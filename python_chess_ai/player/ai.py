@@ -11,31 +11,52 @@ from player.interface import PlayerInterface
 import misc.tools as Tools
 import misc.chess_tools as ChessTools
 import chess
+import chess.polyglot
 import pandas as pd
 import time
+import os
+import errno
 
 HISTORY_FILE_LOC = "res/history.csv"
+OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 TIME_LIMIT = 1
+first_moves_flag = 0
 
 class Player(PlayerInterface):
+
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
+        self.import_opening_book()
 
     def get_move(self, board):
-        super().get_move(board)
-        depth = 2
-        best_move_val = float('-inf')
-        for move in board.legal_moves:
-            tmp_board = chess.Board(str(board.fen()))
-            tmp_board.push(move)
-            value = self.alpha_beta_pruning(tmp_board, depth, True)
-            if value >= best_move_val:
-                best_move_val = value
-                best_move = move
-        return best_move
-        # todo: highest or lowest val dependent on color
-        # return Tools.get_key_with_max_val(board_evaluations)
+        print(first_moves_flag)
+        if first_moves_flag == 0:
+            move = Player.get_opening_move(self, board)
+            if not(type(move) is bool):
+                print("return move")
+                return move
+            else:
+                globals()["first_moves_flag"] = 1
+                print("set flag")
+                Player.get_move(self, board)
+        else:
+            super().get_move(board)
+            depth = 2
+            best_move_val = float('-inf')
+            for move in board.legal_moves:
+                tmp_board = chess.Board(str(board.fen()))
+                tmp_board.push(move)
+                value = self.alpha_beta_pruning(tmp_board, depth, True)
+                if value >= best_move_val:
+                    best_move_val = value
+                    best_move = move
+            print(type(best_move))
+            print("best_move: ", best_move)
+            return best_move
+
+            # todo: highest or lowest val dependent on color
+            # return Tools.get_key_with_max_val(board_evaluations)
 
     def submit_move(self, move):
         super().submit_move(move)
@@ -112,3 +133,28 @@ class Player(PlayerInterface):
         value = row['value'].item() if len(row['value'])==1 else 0
         return value
 
+    '''
+    load an opening book in class variable `opening_book`
+    raise an error if system cannot find the opening-book file
+    '''
+    def import_opening_book(self):
+        if os.path.isfile(OPENING_BOOK_LOC):
+            Player.opening_book = chess.polyglot.open_reader(OPENING_BOOK_LOC)
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+
+    '''
+    get the current board and return move, as string, for this situation
+    '''
+    def get_opening_move(self, board):
+        if not (Player.opening_book is None):
+            try:
+                main_entry = Player.opening_book.find(board)
+                move = main_entry.move()
+                return move
+            except IndexError:
+                return False
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
