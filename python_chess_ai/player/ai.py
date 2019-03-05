@@ -24,23 +24,32 @@ OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 
 class Player(PlayerInterface):
 
+    # ToDo: opening_book_flag
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
         self.import_opening_book()
         self.time_limit = self.get_timeout_by_dif(difficulty)
+        self.opening_book_flag = 0
 
+    # ToDo: IterativeDeepening returns NoneType
     def get_move(self, board):
-        super().get_move(board)
-
-        # Todo: Add opening book
-        if False:
-            return self.get_opening_move(board)
-        else :
-            start_time = int(time.time())
-            end_time = start_time + self.time_limit
-
-            return self.iterative_deepening(board, start_time, end_time)
+        try:
+            if self.opening_book_flag == 0:
+                move = self.get_opening_move(board)
+                if not(type(move) is bool):
+                    return move
+                else:
+                    self.opening_book_flag = 1
+                    return self.get_move(board)
+            else :
+                super().get_move(board)
+                start_time = int(time.time())
+                end_time = start_time + self.time_limit
+                return self.iterative_deepening(board, start_time, end_time)
+        except FileNotFoundError:
+            self.opening_book_flag = 1
+            return self.get_move(board)
 
     def submit_move(self, move):
         super().submit_move(move)
