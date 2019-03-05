@@ -24,7 +24,7 @@ class ChessMaster:
             board = chess.Board()
             turn_list = list()
             while not board.is_game_over():
-                current_player = players[int(board.turn)]
+                current_player = players[int(not board.turn)]
                 current_player.print_board(current_player.name, board)
 
                 move = current_player.get_move(board)
@@ -39,7 +39,7 @@ class ChessMaster:
 
     def groom_board_history(self, final_board, turn_list):
         # Todo: replace victory status calculation with correct version (draw/player1/player2)
-        victory_status = 1 if final_board.turn else -1
+        victory_status = -1 if final_board.turn else 1
 
         new_turn_dict = dict.fromkeys(turn_list, victory_status)
         # get existing board history
