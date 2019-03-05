@@ -12,10 +12,14 @@ from player.interface import PlayerInterface
 import misc.tools as Tools
 import misc.chess_tools as ChessTools
 import chess
+import chess.polyglot
 import pandas as pd
 import time
+import os
+import errno
 
 HISTORY_FILE_LOC = "res/history.csv"
+OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 
 
 class Player(PlayerInterface):
@@ -23,6 +27,7 @@ class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
+        self.import_opening_book()
         self.time_limit = self.get_timeout_by_dif(difficulty)
 
     def get_move(self, board):
@@ -30,7 +35,7 @@ class Player(PlayerInterface):
 
         # Todo: Add opening book
         if False:
-            pass
+            return self.get_opening_move(board)
         else :
             start_time = int(time.time())
             end_time = start_time + self.time_limit
@@ -42,6 +47,33 @@ class Player(PlayerInterface):
 
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
+        
+    '''
+    load an opening book in class variable `opening_book`
+    raise an error if system cannot find the opening-book file
+    '''
+    def import_opening_book(self):
+        if os.path.isfile(OPENING_BOOK_LOC):
+            Player.opening_book = chess.polyglot.open_reader(OPENING_BOOK_LOC)
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+
+    '''
+    get the current board and return move, as string, for this situation
+    '''
+    def get_opening_move(self, board):
+        if not (Player.opening_book is None):
+            try:
+                main_entry = Player.opening_book.find(board)
+                move = main_entry.move()
+                return move
+            except IndexError:
+                return False
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+
 
     def iterative_deepening(self, board, start_time, end_time):
         depth = 1
@@ -131,4 +163,3 @@ class Player(PlayerInterface):
         row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
         value = row['value'].item() if len(row['value']) == 1 else 0
         return value
-
