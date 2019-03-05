@@ -36,7 +36,7 @@ class Player(PlayerInterface):
         # Todo: Add opening book
         if False:
             return self.get_opening_move(board)
-        else :
+        else:
             start_time = int(time.time())
             end_time = start_time + self.time_limit
 
@@ -93,7 +93,7 @@ class Player(PlayerInterface):
                 if value >= best_move_val:
                     best_move_val = value
                     best_move = move
-            if best_move_val > overall_best_move_val:
+            if best_move_val >= overall_best_move_val:
                 overall_best_move_val = best_move_val
                 overall_best_move = best_move
             depth += 1
