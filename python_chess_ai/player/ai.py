@@ -24,32 +24,28 @@ OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 
 class Player(PlayerInterface):
 
-    # ToDo: opening_book_flag
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
-        self.import_opening_book()
         self.time_limit = self.get_timeout_by_dif(difficulty)
-        self.opening_book_flag = 0
+        self.book = chess.polyglot.open_reader("res/polyglot/Performance.bin")
 
-    # ToDo: IterativeDeepening returns NoneType
     def get_move(self, board):
+        super().get_move(board)
+
         try:
-            if self.opening_book_flag == 0:
-                move = self.get_opening_move(board)
-                if not(type(move) is bool):
-                    return move
-                else:
-                    self.opening_book_flag = 1
-                    return self.get_move(board)
-            else :
-                super().get_move(board)
+            opening_book = chess.polyglot.open_reader(OPENING_BOOK_LOC)
+            move = self.get_opening_move(board, opening_book)
+            if type(move) == chess.Move:
+                print("move: ",move)
+                return move
+            else:
                 start_time = int(time.time())
                 end_time = start_time + self.time_limit
                 return self.iterative_deepening(board, start_time, end_time)
-        except FileNotFoundError:
-            self.opening_book_flag = 1
-            return self.get_move(board)
+        except (FileNotFoundError, IndexError):
+            print("FileNotFoundError/IndexError")
+            return self.iterative_deepening(board, start_time, end_time)
 
     def submit_move(self, move):
         super().submit_move(move)
@@ -57,25 +53,28 @@ class Player(PlayerInterface):
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
         
-    '''
-    load an opening book in class variable `opening_book`
-    raise an error if system cannot find the opening-book file
-    '''
     def import_opening_book(self):
+        '''
+        load an opening book in class variable `opening_book`
+        raise an error if system cannot find the opening-book file
+        '''
         if os.path.isfile(OPENING_BOOK_LOC):
-            Player.opening_book = chess.polyglot.open_reader(OPENING_BOOK_LOC)
+            print("in if")
+            return chess.polyglot.open_reader(OPENING_BOOK_LOC)
         else:
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
 
-    '''
-    get the current board and return move, as string, for this situation
-    '''
-    def get_opening_move(self, board):
-        if not (Player.opening_book is None):
+    def get_opening_move(self, board, opening_book):
+        '''
+        get the current board and return move, as string, for this situation
+        '''
+        if not (opening_book is None):
             try:
-                main_entry = Player.opening_book.find(board)
+                main_entry = opening_book.find(board)
                 move = main_entry.move()
+                opening_book.close()
+                print("closed book")
                 return move
             except IndexError:
                 return False
@@ -102,7 +101,7 @@ class Player(PlayerInterface):
                 if value >= best_move_val:
                     best_move_val = value
                     best_move = move
-            if best_move_val > overall_best_move_val:
+            if best_move_val >= overall_best_move_val:
                 overall_best_move_val = best_move_val
                 overall_best_move = best_move
             depth += 1
