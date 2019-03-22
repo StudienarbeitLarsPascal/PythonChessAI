@@ -40,22 +40,7 @@ class UserInput(UserInputInterface):
             "b": u'\u265D',
             "n": u'\u265E',
             "p": u'\u265F'
-        }[piece]
-
-    def create_board_matrix(self, board):
-        board_fen = board.fen().split(" ")[0]
-        board_matrix = []
-
-        for row in board_fen.split("/"):
-            line = []
-            for character in row:
-                if character.isdigit():
-                    for empty in range(int(character)):
-                        line.append(" ")
-                else: 
-                    line.append(character)
-            board_matrix.append(line)
-        return board_matrix
+        }.get(piece, piece)
 
     def get_move(self, legal_moves):
         super().get_move(legal_moves)
@@ -72,22 +57,37 @@ class UserInput(UserInputInterface):
         super().print_board(player_name, board)
         print(PLAYER_TURN_MESSAGE.format(player_name))
 
-        board_fen = self.create_board_matrix(board)
+        board_matrix = self.create_board_matrix(board)
 
         self.print_alphabetical_description()
-        for row_index, row in enumerate(board_fen):
+        for row_index, row in enumerate(board_matrix):
             print((str(row_index + 1)).center(3), end="")
-            for field_index, chess_field in enumerate(row): 
-                field_index = bool((field_index + 1) % 2) if row_index % 2 is 0 else bool(field_index % 2)
-                colored_field = self.create_piece(chess_field, field_index)
+            for field_index, field in enumerate(row):
+                field_is_dark = bool((field_index + row_index)% 2)
+                colored_field = self.create_piece(field, field_is_dark)
                 print(colored_field, end='')
-            print((str(row_index + 1) + "\n").center(3), end="")
+            print((str(row_index + 1)).center(3))
         self.print_alphabetical_description()
 
-    def create_piece(self, character, field_index):
-        chess_piece = str(self.piece_switcher(character)) if not (character == " ") else ""
+    def create_board_matrix(self, board):
+        board_fen = board.fen().split(" ")[0]
+        board_matrix = []
+
+        for row in board_fen.split("/"):
+            line = []
+            for character in row:
+                if character.isdigit():
+                    for empty in range(int(character)):
+                        line.append(" ")
+                else: 
+                    line.append(character)
+            board_matrix.append(line)
+        return board_matrix
+
+    def create_piece(self, character, field_is_dark):
+        chess_piece = str(self.piece_switcher(character))
         chess_piece_color = FG_BLACK if character.isupper() else FG_WHITE
         colored_chess_piece = chess_piece_color + chess_piece.center(3) + fg.rs
-        background_color = BG_BLACK if field_index is False else BG_WHITE
+        background_color = BG_BLACK if field_is_dark is False else BG_WHITE
         field = background_color + colored_chess_piece + bg.rs
         return field
