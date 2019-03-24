@@ -11,6 +11,7 @@ from player.interface import PlayerInterface
 
 import misc.tools as Tools
 import misc.chess_tools as ChessTools
+from player.user_input import terminal, gui
 import chess
 import chess.polyglot
 import pandas as pd
@@ -29,6 +30,7 @@ class Player(PlayerInterface):
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
         self.time_limit = self.get_timeout_by_dif(difficulty)
         self.book = chess.polyglot.open_reader("res/polyglot/Performance.bin")
+        self.ui=self.get_ui_type(ui_status).UserInput()
 
     def get_move(self, board):
         super().get_move(board)
@@ -37,14 +39,12 @@ class Player(PlayerInterface):
             opening_book = chess.polyglot.open_reader(OPENING_BOOK_LOC)
             move = self.get_opening_move(board, opening_book)
             if type(move) == chess.Move:
-                print("move: ",move)
                 return move
             else:
                 start_time = int(time.time())
                 end_time = start_time + self.time_limit
                 return self.iterative_deepening(board, start_time, end_time)
         except (FileNotFoundError, IndexError):
-            print("FileNotFoundError/IndexError")
             return self.iterative_deepening(board, start_time, end_time)
 
     def submit_move(self, move):
@@ -52,6 +52,7 @@ class Player(PlayerInterface):
 
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
+        self.ui.print_board(player_name, board)
         
     def import_opening_book(self):
         '''
@@ -59,7 +60,6 @@ class Player(PlayerInterface):
         raise an error if system cannot find the opening-book file
         '''
         if os.path.isfile(OPENING_BOOK_LOC):
-            print("in if")
             return chess.polyglot.open_reader(OPENING_BOOK_LOC)
         else:
             raise FileNotFoundError(
@@ -74,7 +74,6 @@ class Player(PlayerInterface):
                 main_entry = opening_book.find(board)
                 move = main_entry.move()
                 opening_book.close()
-                print("closed book")
                 return move
             except IndexError:
                 return False
@@ -171,3 +170,9 @@ class Player(PlayerInterface):
         row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
         value = row['value'].item() if len(row['value']) == 1 else 0
         return value
+
+    def get_ui_type(self, ui_status):
+        return {
+            0: terminal,
+            1: gui
+        }[ui_status]
