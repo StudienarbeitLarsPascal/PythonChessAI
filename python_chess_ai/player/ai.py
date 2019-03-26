@@ -29,14 +29,13 @@ class Player(PlayerInterface):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
         self.time_limit = self.get_timeout_by_dif(difficulty)
-        self.book = chess.polyglot.open_reader("res/polyglot/Performance.bin")
         self.ui=self.get_ui_type(ui_status).UserInput()
 
     def get_move(self, board):
         super().get_move(board)
 
         try:
-            opening_book = chess.polyglot.open_reader(OPENING_BOOK_LOC)
+            opening_book = self.import_opening_book()
             move = self.get_opening_move(board, opening_book)
             if type(move) == chess.Move:
                 return move
