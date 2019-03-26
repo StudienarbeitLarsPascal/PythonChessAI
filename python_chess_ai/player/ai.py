@@ -78,64 +78,61 @@ class Player(PlayerInterface):
     def iterative_deepening(self, board, start_time, end_time):
         depth = 1
 
-        player = board.turn
+        player = bool(board.turn)
+        print(player)
         current_time = start_time
-
-        if player:
-            min_value = float('-inf')
-        else:
-            min_value = float('inf')
-
-        overall_best_move = None
-        overall_best_move_val = min_value
+        overall_best_move = list(board.legal_moves)[0]
 
         while current_time < end_time:
-            best_move_val = min_value
+            best_value = float('-inf')
             for move in board.legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
-                value = self.alpha_beta_pruning(tmp_board, depth-1, player, end_time)
-                if (player and value >= best_move_val) or (not player and value <= best_move_val):
-                    best_move_val = value
+                value = self.min_value(tmp_board, player, float('-inf'), float('inf'), depth - 1)
+                if value >= best_value:
+                    best_value = value
                     best_move = move
-            if (player and best_move_val >= overall_best_move_val) or (not player and value <= overall_best_move_val):
-                overall_best_move_val = best_move_val
-                overall_best_move = best_move
+            overall_best_move = best_move
             depth += 1
             current_time = int(time.time())
 
         return overall_best_move
 
-    def alpha_beta_pruning(self, board, depth, player, end_time, alpha=float('-inf'), beta=float('inf')):
-        if depth == 0 or int(time.time()) >= end_time:
-            return self.evaluate_board(board)
+    def min_value(self, board, player, alpha, beta, depth):
+        #todo: cutoff_test
+        if depth == 0:
+            return self.evaluate_board(board, player)
 
-        if player:
-            best_move = alpha
-            for move in board.legal_moves:
-                tmp_board = chess.Board(str(board.fen()))
-                tmp_board.push(move)
-                best_move = max(best_move, self.alpha_beta_pruning(tmp_board, depth - 1, player, alpha, beta))
-                alpha = max(alpha, best_move)
-                if beta <= alpha:
-                    return best_move
-            return best_move
-        else:
-            best_move = beta
-            for move in board.legal_moves:
-                tmp_board = chess.Board(str(board.fen()))
-                tmp_board.push(move)
-                best_move = min(best_move, self.alpha_beta_pruning(tmp_board, depth - 1, player, alpha, beta))
-                beta = min(beta, best_move)
-                if beta <= alpha:
-                    return best_move
-            return best_move
+        v = float('inf')
+        for move in board.legal_moves:
+            tmp_board = chess.Board(str(board.fen()))
+            tmp_board.push(move)
+            v = min(v, self.max_value(tmp_board, player, alpha, beta, depth -1))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+        return v
 
-    def evaluate_board(self, board):
+    def max_value(self, board, player, alpha, beta, depth):
+        #todo: cutoff_test
+        if depth == 0:
+            return self.evaluate_board(board, player)
+
+        v = float('-inf')
+        for move in board.legal_moves:
+            tmp_board = chess.Board(str(board.fen()))
+            tmp_board.push(move)
+            v = max(v, self.min_value(tmp_board, player, alpha, beta, depth -1))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+        return v
+
+    def evaluate_board(self, board, player):
         evaluation_val = 0
         for func, value in self.evaluation_funcs_dict.items():
             evaluation_val += value * func(board)
-        return evaluation_val
+        return evaluation_val if player else -1*evaluation_val
 
     def get_evaluation_funcs_by_dif(self, difficulty):
         funcs_by_deg_of_dif = {
