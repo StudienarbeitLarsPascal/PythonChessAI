@@ -11,6 +11,7 @@ from player.interface import PlayerInterface
 
 import misc.tools as Tools
 import misc.chess_tools as ChessTools
+from player.user_input import terminal, gui
 import chess
 import chess.polyglot
 import pandas as pd
@@ -27,19 +28,22 @@ class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
-        self.import_opening_book()
         self.time_limit = self.get_timeout_by_dif(difficulty)
+        self.ui=self.get_ui_type(ui_status).UserInput()
 
     def get_move(self, board):
         super().get_move(board)
 
-        # Todo: Add opening book
-        if False:
-            return self.get_opening_move(board)
-        else:
-            start_time = int(time.time())
-            end_time = start_time + self.time_limit
-
+        try:
+            opening_book = self.import_opening_book()
+            move = self.get_opening_move(board, opening_book)
+            if type(move) == chess.Move:
+                return move
+            else:
+                start_time = int(time.time())
+                end_time = start_time + self.time_limit
+                return self.iterative_deepening(board, start_time, end_time)
+        except (FileNotFoundError, IndexError):
             return self.iterative_deepening(board, start_time, end_time)
 
     def submit_move(self, move):
@@ -47,26 +51,28 @@ class Player(PlayerInterface):
 
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
+        self.ui.print_board(player_name, board)
         
-    '''
-    load an opening book in class variable `opening_book`
-    raise an error if system cannot find the opening-book file
-    '''
     def import_opening_book(self):
+        '''
+        load an opening book in class variable `opening_book`
+        raise an error if system cannot find the opening-book file
+        '''
         if os.path.isfile(OPENING_BOOK_LOC):
-            Player.opening_book = chess.polyglot.open_reader(OPENING_BOOK_LOC)
+            return chess.polyglot.open_reader(OPENING_BOOK_LOC)
         else:
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
 
-    '''
-    get the current board and return move, as string, for this situation
-    '''
-    def get_opening_move(self, board):
-        if not (Player.opening_book is None):
+    def get_opening_move(self, board, opening_book):
+        '''
+        get the current board and return move, as string, for this situation
+        '''
+        if not (opening_book is None):
             try:
-                main_entry = Player.opening_book.find(board)
+                main_entry = opening_book.find(board)
                 move = main_entry.move()
+                opening_book.close()
                 return move
             except IndexError:
                 return False
@@ -165,3 +171,9 @@ class Player(PlayerInterface):
         row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
         value = row['value'].item() if len(row['value']) == 1 else 0
         return value
+
+    def get_ui_type(self, ui_status):
+        return {
+            0: terminal,
+            1: gui
+        }[ui_status]

@@ -17,7 +17,7 @@ import chess
 class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty=None):
         super().__init__(num, name, ui_status, difficulty)
-        self.ui=self.uiSwitcher.get(ui_status).UserInput()
+        self.ui=self.get_ui_type(ui_status).UserInput()
 
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
@@ -35,7 +35,8 @@ class Player(PlayerInterface):
     def submit_move(self, move):
         super().submit_move(move)
 
-    uiSwitcher = {
-        0: terminal,
-        1: gui
-    }
+    def get_ui_type(self, ui_status):
+        return {
+            0: terminal,
+            1: gui
+        }[ui_status]
