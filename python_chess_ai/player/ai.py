@@ -11,6 +11,7 @@ from player.interface import PlayerInterface
 
 import misc.tools as Tools
 import misc.chess_tools as ChessTools
+from functools import lru_cache
 from player.user_input import terminal, gui
 import chess
 import chess.polyglot
@@ -85,50 +86,57 @@ class Player(PlayerInterface):
         depth = 1
 
         player = bool(board.turn)
-        print(player)
         current_time = start_time
         overall_best_move = list(board.legal_moves)[0]
 
         while current_time < end_time:
+            print("----------")
+            print(depth)
+            print(end_time - current_time)
             best_value = float('-inf')
             for move in board.legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
-                value = self.min_value(tmp_board, player, float('-inf'), float('inf'), depth - 1)
+                value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time)
                 if value >= best_value:
                     best_value = value
                     best_move = move
             overall_best_move = best_move
             depth += 1
             current_time = int(time.time())
+            print(end_time - current_time)
 
         return overall_best_move
 
-    def min_value(self, board, player, alpha, beta, depth):
-        #todo: cutoff_test
-        if depth == 0:
+    @lru_cache(maxsize=256)
+    def min_value(self, board_fen, player, alpha, beta, depth, time_limit):
+        board = chess.Board(board_fen)
+
+        if board.is_game_over() or depth == 0 or int(time.time() >= time_limit):
             return self.evaluate_board(board, player)
 
         v = float('inf')
         for move in board.legal_moves:
-            tmp_board = chess.Board(str(board.fen()))
+            tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
-            v = min(v, self.max_value(tmp_board, player, alpha, beta, depth -1))
+            v = min(v, self.max_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit))
             if v <= alpha:
                 return v
             beta = min(beta, v)
         return v
 
-    def max_value(self, board, player, alpha, beta, depth):
-        #todo: cutoff_test
-        if depth == 0:
+    @lru_cache(maxsize=256)
+    def max_value(self, board_fen, player, alpha, beta, depth, time_limit):
+        board = chess.Board(board_fen)
+
+        if board.is_game_over() or depth == 0 or int(time.time() >= time_limit):
             return self.evaluate_board(board, player)
 
         v = float('-inf')
         for move in board.legal_moves:
-            tmp_board = chess.Board(str(board.fen()))
+            tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
-            v = max(v, self.min_value(tmp_board, player, alpha, beta, depth -1))
+            v = max(v, self.min_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit))
             if v >= beta:
                 return v
             alpha = max(alpha, v)
@@ -153,7 +161,7 @@ class Player(PlayerInterface):
         time_limit = {
             1: 5,
             2: 10,
-            3: 20
+            3: 10
         }
         return time_limit.get(difficulty)
 
