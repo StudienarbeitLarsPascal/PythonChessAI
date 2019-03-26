@@ -14,7 +14,7 @@ ROOK_VALUE = 5
 KNIGHT_VALUE = 3
 BISHOP_VALUE = 3
 QUEEN_VALUE = 9
-KING_VALUE = 20
+KING_VALUE = 15
 
 
 def get_legal_moves_uci(board):

@@ -44,7 +44,7 @@ class Player(PlayerInterface):
                 end_time = start_time + self.time_limit
                 return self.iterative_deepening(board, start_time, end_time)
         except (FileNotFoundError, IndexError):
-            return self.iterative_deepening(board, start_time, end_time)
+        return self.iterative_deepening(board, start_time, end_time)
 
     def submit_move(self, move):
         super().submit_move(move)
@@ -84,22 +84,27 @@ class Player(PlayerInterface):
     def iterative_deepening(self, board, start_time, end_time):
         depth = 1
 
-        overall_best_move = None
-        overall_best_move_val = 0
-
+        player = board.turn
         current_time = start_time
 
+        if player:
+            min_value = float('-inf')
+        else:
+            min_value = float('inf')
+
+        overall_best_move = None
+        overall_best_move_val = min_value
+
         while current_time < end_time:
-            best_move_val = float('-inf')
+            best_move_val = min_value
             for move in board.legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
-                # Todo: Check if board.turn works
-                value = self.alpha_beta_pruning(tmp_board, depth, board.turn, end_time)
-                if value >= best_move_val:
+                value = self.alpha_beta_pruning(tmp_board, depth-1, player, end_time)
+                if (player and value >= best_move_val) or (not player and value <= best_move_val):
                     best_move_val = value
-                    best_move = move
-            if best_move_val >= overall_best_move_val:
+                    best_move = move             
+            if (player and best_move_val >= overall_best_move_val) or (not player and value <= overall_best_move_val):
                 overall_best_move_val = best_move_val
                 overall_best_move = best_move
             depth += 1
@@ -112,7 +117,7 @@ class Player(PlayerInterface):
             return self.evaluate_board(board)
 
         if player:
-            best_move = float('-inf')
+            best_move = alpha
             for move in board.legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
@@ -122,7 +127,7 @@ class Player(PlayerInterface):
                     return best_move
             return best_move
         else:
-            best_move = float('inf')
+            best_move = beta
             for move in board.legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
@@ -141,8 +146,8 @@ class Player(PlayerInterface):
     def get_evaluation_funcs_by_dif(self, difficulty):
         funcs_by_deg_of_dif = {
             1: {self.get_board_value: 1},
-            2: {self.get_board_value: 1, self.get_attacked_figures_val: 1/2},
-            3: {self.get_board_value: 1, self.get_attacked_figures_val: 1/2, self.compare_board_history: 5}
+            2: {self.get_board_value: 1, self.get_attacked_figures_val: 1/4},
+            3: {self.get_board_value: 1, self.get_attacked_figures_val: 1/4, self.compare_board_history: 3}
         }
         return funcs_by_deg_of_dif.get(difficulty)
 
