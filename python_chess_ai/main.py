@@ -16,7 +16,7 @@ from player import ai, api, dummy, user
 
 __version__ = "0.1-Alpha"
 
-# usage argument parser: [-h][-t | -g][-v]
+# usage argument parser: [-h] [-t | -g] [-p PLAYER PLAYER][-pT {User,AI,Player,Dummy} {User,AI,Player,Dummy}][-pD {0,1,2,3} {0,1,2,3}] [-v]
 parser = argparse.ArgumentParser()
 ui_group = parser.add_mutually_exclusive_group()
 ui_group.add_argument("-t", "--terminal", help="starts the terminal ui", action="store_true")
@@ -51,7 +51,6 @@ def main():
     elif args.version:
         print(__version__)
 
-
 def start_chess_master(ui_status, settings_ui, player_settings):
     try:
         players = []
@@ -67,13 +66,11 @@ def start_chess_master(ui_status, settings_ui, player_settings):
         traceback.print_exc(file=sys.stdout)
         sys.exit(0)
 
-
 def ui_switcher(ui_type):
     return {
         0: terminal,
         1: gui
     }[ui_type]
-
 
 def type_switcher(player_type):
     return {
@@ -86,7 +83,6 @@ def type_switcher(player_type):
         "Player": api,
         "Dummy": dummy
     }[player_type]
-
 
 if __name__ == '__main__':
     main()
