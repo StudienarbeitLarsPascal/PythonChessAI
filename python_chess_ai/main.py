@@ -64,7 +64,7 @@ def start_chess_master(ui_status, settings_ui, player_settings):
         print("\nYou've quit the game.")
     except Exception:
         traceback.print_exc(file=sys.stdout)
-        sys.exit(0)
+    sys.exit(0)
 
 def ui_switcher(ui_type):
     return {
