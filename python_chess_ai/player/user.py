@@ -9,15 +9,14 @@
 
 from player.interface import PlayerInterface
 from player.user_input import terminal, gui
-import misc.chess_tools  as chess_tools
+import misc.ai_evaluation_lib  as EvaluationLib
 
 import chess
-
 
 class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty=None):
         super().__init__(num, name, ui_status, difficulty)
-        self.ui=self.get_ui_type(ui_status).UserInput()
+        self.ui=super.get_ui_type(ui_status).UserInput()
 
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
@@ -26,7 +25,7 @@ class Player(PlayerInterface):
     def get_move(self, board):
         super().get_move(board)
         # Todo: Check for surrender
-        legal_moves = chess_tools.get_legal_moves_uci(board)
+        legal_moves = list(map(board.uci, board.legal_moves))
         move = None
         while move not in legal_moves:
             move = self.ui.get_move(legal_moves)
@@ -34,9 +33,3 @@ class Player(PlayerInterface):
 
     def submit_move(self, move):
         super().submit_move(move)
-
-    def get_ui_type(self, ui_status):
-        return {
-            0: terminal,
-            1: gui
-        }[ui_status]

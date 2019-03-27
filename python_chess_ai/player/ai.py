@@ -10,17 +10,15 @@
 from player.interface import PlayerInterface
 
 import misc.tools as Tools
-import misc.chess_tools as ChessTools
+import misc.ai_evaluation_lib as EvaluationLib
 from functools import lru_cache
 from player.user_input import terminal, gui
 import chess
 import chess.polyglot
-import pandas as pd
 import time
 import os
 import errno
 
-HISTORY_FILE_LOC = "res/history.csv"
 OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 
 
@@ -28,24 +26,28 @@ class Player(PlayerInterface):
 
     def __init__(self, num, name, ui_status, difficulty):
         super().__init__(num, name, ui_status, difficulty)
+        
+        self.opening_book = self.import_opening_book(OPENING_BOOK_LOC)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
         self.time_limit = self.get_timeout_by_dif(difficulty)
-        self.ui=self.get_ui_type(ui_status).UserInput()
+        
+        self.ui=super.get_ui_type(ui_status).UserInput()
 
     def get_move(self, board):
         super().get_move(board)
-
-        try:
-            opening_book = self.import_opening_book()
-            move = self.get_opening_move(board, opening_book)
-            if type(move) == chess.Move:
+        
+        if board.fullmove_number <= 14:
+            move = self.get_opening_move(board, self.opening_book)
+            if not move is None:
                 return move
-            else:
-                start_time = int(time.time())
-                end_time = start_time + self.time_limit
-                return self.iterative_deepening(board, start_time, end_time)
-        except (FileNotFoundError, IndexError):
-            return self.iterative_deepening(board, start_time, end_time)
+        
+        white_material = EvaluationLib.get_value_by_color(board, chess.WHITE, False)
+        black_material = EvaluationLib.get_value_by_color(board, chess.BLACK, False)
+        if white_material <= 13 and black_material <= 13:
+            # Todo: return Finishing strategy
+            pass
+            
+        return self.iterative_deepening(board)
 
     def submit_move(self, move):
         super().submit_move(move)
@@ -53,17 +55,7 @@ class Player(PlayerInterface):
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
         self.ui.print_board(player_name, board)
-        
-    def import_opening_book(self):
-        '''
-        load an opening book in class variable `opening_book`
-        raise an error if system cannot find the opening-book file
-        '''
-        if os.path.isfile(OPENING_BOOK_LOC):
-            return chess.polyglot.open_reader(OPENING_BOOK_LOC)
-        else:
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+
 
     def get_opening_move(self, board, opening_book):
         '''
@@ -76,35 +68,39 @@ class Player(PlayerInterface):
                 opening_book.close()
                 return move
             except IndexError:
-                return False
+                return None
         else:
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+            return None
 
 
-    def iterative_deepening(self, board, start_time, end_time):
+    def iterative_deepening(self, board):
         depth = 1
 
-        player = bool(board.turn)
+        start_time = int(time.time())
+        end_time = start_time + self.time_limit
         current_time = start_time
-        overall_best_move = list(board.legal_moves)[0]
+
+        player = bool(board.turn)
+
+        legal_moves = list(board.legal_moves)
 
         while current_time < end_time:
-            print("----------")
-            print(depth)
-            print(end_time - current_time)
+            move_val_dict = {}
+
             best_value = float('-inf')
             for move in board.legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
                 value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time)
+                move_val_dict[move] = value
                 if value >= best_value:
                     best_value = value
                     best_move = move
             overall_best_move = best_move
+            
+            legal_moves.sort(key=move_val_dict.get)
             depth += 1
             current_time = int(time.time())
-            print(end_time - current_time)
 
         return overall_best_move
 
@@ -150,9 +146,9 @@ class Player(PlayerInterface):
 
     def get_evaluation_funcs_by_dif(self, difficulty):
         funcs_by_deg_of_dif = {
-            1: {self.get_board_value: 1},
-            2: {self.get_board_value: 1, self.get_attacked_figures_val: 1/4},
-            3: {self.get_board_value: 1, self.get_attacked_figures_val: 1/4, self.compare_board_history: 3}
+            1: {EvaluationLib.get_board_value: 1},
+            2: {EvaluationLib.get_board_value: 1, EvaluationLib.get_attacked_pieces_value: 1/4},
+            3: {EvaluationLib.get_board_value: 1, EvaluationLib.get_attacked_pieces_value: 1/4, EvaluationLib.get_board_value_by_history: 3}
         }
         return funcs_by_deg_of_dif.get(difficulty)
 
@@ -165,23 +161,13 @@ class Player(PlayerInterface):
         }
         return time_limit.get(difficulty)
 
-    @staticmethod
-    def get_board_value(board):
-        return ChessTools.get_board_value(board)
-
-    @staticmethod
-    def get_attacked_figures_val(board):
-        return ChessTools.get_attacked_pieces_value(board)
-
-    @staticmethod
-    def compare_board_history(board):
-        dataset = pd.read_csv(HISTORY_FILE_LOC)
-        row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
-        value = row['value'].item() if len(row['value']) == 1 else 0
-        return value
-
-    def get_ui_type(self, ui_status):
-        return {
-            0: terminal,
-            1: gui
-        }[ui_status]
+    def import_opening_book(self, book_location):
+        '''
+        load an opening book in class variable `opening_book`
+        raise an error if system cannot find the opening-book file
+        '''
+        if os.path.isfile(book_location):
+            return chess.polyglot.open_reader(OPENING_BOOK_LOC)
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
