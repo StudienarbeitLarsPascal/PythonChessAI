@@ -45,3 +45,20 @@ class SettingsInterface(ABC):
             players.append(new_player)
 
         return players
+
+    def fast_interrogate_settings(self, interrogate_settings):
+        """todo: also find more elegant way?"""
+        players = []
+        for i in range(2):
+            num = i+1
+            name = interrogate_settings[i]["player_name"]
+            player_type = interrogate_settings[i]["player_type"]
+
+            difficulty = None
+            if player_type == "AI":
+                difficulty = interrogate_settings[i]["player_difficulty"]
+
+            new_player = PlayerSettings(num, name, player_type, difficulty)
+            players.append(new_player)
+
+        return players
