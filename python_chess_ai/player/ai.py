@@ -21,17 +21,34 @@ import errno
 
 OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 
+BOARD_VALUE_FACTOR = 1
+ATTACKED_PIECES_FACTOR = 1/4
+BOARD_POSITIONS_FACTOR = 1
+KING_SAFETY_FACTOR = 2
+OPP_KING_SAFETY_FACTOR = 1/2
+MOBILITY_FACTOR = 1/2
+HISTORY_FACTOR = 1/10
 
 class Player(PlayerInterface):
 
-    def __init__(self, num, name, ui_status, difficulty):
+    def __init__(self, num, name, ui_status, difficulty, board_value_fact = BOARD_VALUE_FACTOR, attacked_pieces_fact = ATTACKED_PIECES_FACTOR, board_positions_fact = BOARD_POSITIONS_FACTOR, king_safety_fact = KING_SAFETY_FACTOR, opp_king_safety_fact = OPP_KING_SAFETY_FACTOR, mobility_fact = MOBILITY_FACTOR, history_fact = HISTORY_FACTOR):
         super().__init__(num, name, ui_status, difficulty)
         
+        self.board_value_fact = board_value_fact
+        self.attacked_pieces_fact = attacked_pieces_fact
+        self.board_positions_fact = board_positions_fact
+        self.king_safety_fact = king_safety_fact
+        self.opp_king_safety_fact = opp_king_safety_fact
+        self.mobility_fact = mobility_fact
+        self.history_fact = history_fact
+
         self.opening_book = self.import_opening_book(OPENING_BOOK_LOC)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
         self.time_limit = self.get_timeout_by_dif(difficulty)
+
+        print(self.board_positions_fact)
         
-        self.ui=super.get_ui_type(ui_status).UserInput()
+        self.ui=self.get_ui_type(ui_status).UserInput()
 
     def get_move(self, board):
         super().get_move(board)
@@ -81,6 +98,7 @@ class Player(PlayerInterface):
         current_time = start_time
 
         player = bool(board.turn)
+        print(player)
 
         legal_moves = list(board.legal_moves)
 
@@ -139,16 +157,17 @@ class Player(PlayerInterface):
         return v
 
     def evaluate_board(self, board, player):
+        player_color = chess.WHITE if player else chess.BLACK
         evaluation_val = 0
         for func, value in self.evaluation_funcs_dict.items():
-            evaluation_val += value * func(board)
-        return evaluation_val if player else -1*evaluation_val
+            evaluation_val = evaluation_val + value * func(board, player_color)
+        return evaluation_val
 
     def get_evaluation_funcs_by_dif(self, difficulty):
         funcs_by_deg_of_dif = {
-            1: {EvaluationLib.get_board_value: 1},
-            2: {EvaluationLib.get_board_value: 1, EvaluationLib.get_attacked_pieces_value: 1/4},
-            3: {EvaluationLib.get_board_value: 1, EvaluationLib.get_attacked_pieces_value: 1/4, EvaluationLib.get_board_value_by_history: 3}
+            1: {EvaluationLib.get_board_value: self.board_value_fact},
+            2: {EvaluationLib.get_board_value: self.board_value_fact, EvaluationLib.get_attacked_pieces_value: self.attacked_pieces_fact},
+            3: {EvaluationLib.get_board_value: self.board_value_fact, EvaluationLib.get_attacked_pieces_value: self.attacked_pieces_fact, EvaluationLib.get_board_positions_value: self.board_positions_fact, EvaluationLib.calculate_king_zone_safety: self.king_safety_fact, EvaluationLib.calculate_opp_king_zone_safety: self.opp_king_safety_fact, EvaluationLib.calculate_mobility_value: self.mobility_fact, EvaluationLib.get_board_value_by_history: self.history_fact}
         }
         return funcs_by_deg_of_dif.get(difficulty)
 

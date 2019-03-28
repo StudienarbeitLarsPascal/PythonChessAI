@@ -28,7 +28,6 @@ class ChessMaster:
                 current_player.print_board(current_player.name, board)
 
                 move = current_player.get_move(board)
-                print(move)
                 board.push(move)
                 current_player.submit_move(move)
 

@@ -108,15 +108,15 @@ def get_value_by_color(board, color, count_king=True):
     return sum(attacked_pieces_value)
 
 
-def get_board_value(board, count_king=True):
+def get_board_value(board, color, count_king=True):
     '''
     calculates value of white pieces and subtracts value of black pieces => calculates board value
-    returns positive number if white has an advantage, negative number in case black has
+    returns positive number if given color has an advantage, negative if given color has a disadvantage
     '''
     white_value = get_value_by_color(board, chess.WHITE, count_king)
     black_value = get_value_by_color(board, chess.BLACK, count_king)
 
-    return white_value - black_value
+    return white_value - black_value if color is chess.WHITE else black_value - white_value
 
 
 def get_attacked_pieces_value_by_color(board, attacker_color, defender_color):
@@ -134,14 +134,15 @@ def get_attacked_pieces_value_by_color(board, attacker_color, defender_color):
     return sum(value)
 
 
-def get_attacked_pieces_value(board):
+def get_attacked_pieces_value(board, color):
     '''
     calculates value of attacked black pieces and subtracts value of attacked white pieces => calculates attacked pieces value
+    returns positive number if given color has an advantage, negative if given color has a disadvantage
     '''
     white_value = get_attacked_pieces_value_by_color(board, chess.WHITE, chess.BLACK)
     black_value = get_attacked_pieces_value_by_color(board, chess.BLACK, chess.WHITE)
 
-    return white_value - black_value
+    return white_value - black_value if color is chess.WHITE else black_value - white_value
 
 
 def assign_piece_matrix(piece_type):
@@ -183,15 +184,15 @@ def get_board_positions_value_by_color(board, color):
     return sum
         
 
-def get_board_positions_value(board):
+def get_board_positions_value(board, color):
     '''
     calculates value of white pieces dependent on its position and subtracts value of black pieces dependent on its position
-    returns positive number if white has an advantage, negative number in case black has 
+    returns positive number if given color has an advantage, negative if given color has a disadvantage
     '''
-    white_value = get_board_positions_value_by_color(board, chess.WHITE)
-    black_value = get_board_positions_value_by_color(board, chess.BLACK)
+    white_value = get_board_positions_value_by_color(board, chess.WHITE) / 10
+    black_value = get_board_positions_value_by_color(board, chess.BLACK) / 10
 
-    return white_value - black_value
+    return (white_value - black_value) if color is chess.WHITE else (black_value - white_value)
 
 
 def get_piece_position(board, piece):
@@ -206,6 +207,11 @@ def get_piece_position(board, piece):
 
 
 def calculate_king_zone(board, color):
+    '''
+    calculates king zone of king of given color with a
+    width of 3 squares (1 to the left, 1 to the right of the king)
+    height of 4 squares (3 to to the front of the king)
+    '''
     king_zone = chess.SquareSet()
     king_rank, king_file = get_piece_position(board, chess.Piece(chess.KING, color))
 
@@ -219,16 +225,98 @@ def calculate_king_zone(board, color):
     return king_zone
 
 def get_attackers_by_squares(board, square_set, attacker_color):
+    '''
+    returns dictionary with all attackers of a given square set
+    key = attacker, value = num of fields attacker is attacking
+    '''
     attacker_dict = {}
     for square in square_set:
         attacker_square_set = board.attackers(attacker_color, square)
         for attacker_square in attacker_square_set:
             attacker_piece = board.piece_at(attacker_square)
-            attacker_dict[attacker_piece] = attacker_dict.get(attacker_piece, 0) + 1
+            if not (attacker_piece.piece_type is chess.PAWN or attacker_piece.piece_type is chess.KING):
+                attacker_dict[attacker_piece] = attacker_dict.get(attacker_piece, 0) + 1
     return attacker_dict
 
+def get_king_attack_weight(piece_counter):
+    '''
+    returns a value dependent on the num of attackers
+    '''
+    return {
+        0: 0,
+        1: 0,
+        2: 50,
+        3: 75,
+        4: 88,
+        5: 94,
+        6: 97,
+        7: 99
+    }.get(piece_counter)
 
-def get_board_value_by_history(board):
+def get_king_attack_constants(piece):
+    '''
+    returns the value of a piece type for the given type
+    '''
+    return {
+        chess.KNIGHT: 20,
+        chess.BISHOP: 20,
+        chess.ROOK: 40,
+        chess.QUEEN: 80
+    }.get(piece, 0)
+
+def calculate_king_zone_safety(board, color):
+    '''
+    calculates value for enemy pieces attacking own king zone
+    uses num of attackers, piece type of attackers and num of attacked squares per piece
+    '''
+    attacker_color = chess.WHITE if color == chess.BLACK else chess.BLACK
+    king_zone = calculate_king_zone(board, color)
+    attackers = get_attackers_by_squares(board, king_zone, attacker_color)
+    attack_weight = get_king_attack_weight(len(attackers))
+    value_of_attack = 0
+    for attacker in attackers:
+        value_of_attack += get_king_attack_constants(attacker.piece_type)
+    
+    return (value_of_attack * attack_weight) / 100
+
+def calculate_opp_king_zone_safety(board, color):
+    '''
+    calculates value for own pieces attacking enemy king zone
+    uses num of attackers, piece type of attackers and num of attacked squares per piece
+    '''
+    opp_color = chess.WHITE if color is chess.BLACK else chess.BLACK
+    return calculate_king_zone_safety(board, opp_color)
+
+
+def get_num_of_legal_moves_by_color(board, color):
+    '''
+    returns number of legal moves for given color
+    if given color is not the color to make the next move, the average for all possible moves of opponent is returned
+    '''
+    player = chess.WHITE if bool(board.turn) else chess.BLACK
+    if player == color:
+        return len(list(board.legal_moves))
+    else:
+        overall_legal_moves = 0
+        for action in board.legal_moves:
+            tmp_board = chess.Board(str(board.fen()))
+            tmp_board.push(action)
+            overall_legal_moves += len(list(tmp_board.legal_moves))
+        return overall_legal_moves / len(list(board.legal_moves))
+
+
+def calculate_mobility_value(board, color):
+    '''
+    returns mobility value (num of possible moves)
+    returns positive number if given color has an advantage, negative if given color has a disadvantage
+    '''
+    white_value = get_num_of_legal_moves_by_color(board, chess.WHITE)
+    black_value = get_num_of_legal_moves_by_color(board, chess.BLACK)
+
+    return (white_value - black_value) if color is chess.WHITE else (black_value - white_value)
+
+
+def get_board_value_by_history(board, color):
     '''
     check history file if board has stored given board
     returns value of the board in case it does
@@ -237,7 +325,4 @@ def get_board_value_by_history(board):
     dataset = pd.read_csv(HISTORY_FILE_LOC)
     row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
     value = row['value'].item() if len(row['value']) == 1 else 0
-    return value
-
-print(get_attackers_by_squares(chess.Board("6K1/8/5r2/N7/1P6/p7/3k4/5Rb1"), calculate_king_zone(chess.Board(), chess.WHITE), chess.BLACK))
-
+    return value if color is chess.WHITE else -1*value
