@@ -11,7 +11,6 @@ import sys, traceback
 import argparse
 from settings import terminal, gui
 from chess_master import ChessMaster
-from misc.tools import Tools
 from player import ai, api, dummy, user
 
 __version__ = "0.1-Alpha"
@@ -23,6 +22,7 @@ ui_group.add_argument("-t", "--terminal", help="starts the terminal ui", action=
 ui_group.add_argument("-g", "--gui", help="starts the GUI", action="store_true")
 parser.add_argument("-v", "--version", help="print the version number and exit", action="store_true")
 args = parser.parse_args()
+
 def main():
     if args.gui or (not (args.terminal) and not (args.gui) and not (args.version)):
         ui_status = 1

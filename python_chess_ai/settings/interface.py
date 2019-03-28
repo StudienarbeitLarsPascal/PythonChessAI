@@ -30,7 +30,9 @@ class SettingsInterface(ABC):
         ...
 
     def interrogate_settings(self):
-        """todo: find more elegant way?"""
+        """
+        todo: replace difficulty request through additional_settings_function in player interface
+        """
         players = []
         for i in range(2):
             num = i+1
@@ -39,7 +41,7 @@ class SettingsInterface(ABC):
 
             difficulty = None
             if player_type == 2:
-                difficulty = self.get_difficulty()
+                difficulty = self.get_difficulty(num)
 
             new_player = PlayerSettings(num, name, player_type, difficulty)
             players.append(new_player)
