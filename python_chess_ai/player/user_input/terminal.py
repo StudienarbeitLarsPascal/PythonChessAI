@@ -8,7 +8,7 @@
 #
 
 from player.user_input.interface import UserInputInterface
-from misc.tools import Tools
+import misc.tools as Tools
 from sty import ef, fg, bg, rs
 
 FG_BLACK = fg(0, 0, 0)

@@ -31,6 +31,7 @@ class Settings(SettingsInterface):
 
     def get_player_name(self, player_num):
         super().get_player_name(player_num)
+        print("TEst")
         return input(PLAYER_NAME_INPUT_MESSAGE.format(player_num))
 
     def get_difficulty(self, player_num):

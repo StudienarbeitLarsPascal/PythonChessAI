@@ -24,12 +24,11 @@ parser.add_argument("-v", "--version", help="print the version number and exit",
 args = parser.parse_args()
 
 def main():
-    if args.gui or (not (args.terminal) and not (args.gui) and not (args.version)):
-        ui_status = 1
-        print("Start GUI")
+    if args.terminal or (not (args.gui) and not (args.terminal) and not (args.version)):
+        ui_status = 0
         start_chess_master(ui_status)
     elif args.terminal:
-        ui_status = 0
+        ui_status = 1
         start_chess_master(ui_status)
     elif args.version:
         print(__version__)
