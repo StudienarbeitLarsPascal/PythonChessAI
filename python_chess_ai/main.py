@@ -6,12 +6,12 @@
 #
 # This file is the main file which starts the chess program and calls the elementary methods
 #
-
 import sys, traceback
 import argparse
 from settings import terminal, gui
 from chess_master import ChessMaster
 from player import ai, api, dummy, user
+from colorama import init
 
 __version__ = "0.1-Alpha"
 
@@ -65,4 +65,5 @@ def type_switcher(player_type):
     }[player_type]
 
 if __name__ == '__main__':
+    init(autoreset=True)
     main()
