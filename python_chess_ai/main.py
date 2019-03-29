@@ -44,10 +44,7 @@ def main():
 def start_chess_master(ui_status):
     try:
         settings_ui = ui_switcher(ui_status).Settings()
-        if not (args.player is None and args.player_type is None and args.player_difficulty is None):
-            player_settings = settings_ui.interrogate_settings(args.player, args.player_type, args.player_difficulty)
-        else:
-            player_settings = settings_ui.interrogate_settings()
+        player_settings = settings_ui.interrogate_settings(args.player, args.player_type, args.player_difficulty)
         players = []
         for player_setting in player_settings:
             type = type_switcher(player_setting.type)
