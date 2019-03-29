@@ -30,12 +30,12 @@ def intialize_parser():
     parser.add_argument("-v", "--version", help="print the version number and exit", action="store_true")
     return parser
 
-def main():
+def main(args):
     if args.gui or (not (args.terminal) and not (args.gui) and not (args.version)):
         ui_status = 1
         print("Start GUI")
     elif args.terminal:
-        ui_status = 1
+        ui_status = 0
         start_chess_master(ui_status)
     elif args.version:
         print(__version__)
@@ -78,4 +78,4 @@ def type_switcher(player_type):
 if __name__ == '__main__':
     parser = intialize_parser()
     args = parser.parse_args()
-    main()
+    main(args)
