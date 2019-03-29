@@ -17,7 +17,7 @@ DIFFICULTY_MAX = 3
 
 from player import ai, api, dummy, user
 from settings.interface import SettingsInterface
-from misc.tools import Tools
+import misc.tools as Tools
 
 
 class Settings(SettingsInterface):

@@ -6,13 +6,12 @@
 #
 # This file is the main file which starts the chess program and calls the elementary methods
 #
-
 import sys, traceback
 import argparse
 from settings import terminal, gui
 from chess_master import ChessMaster
-from misc.tools import Tools
 from player import ai, api, dummy, user
+from colorama import init
 
 __version__ = "0.1-Alpha"
 
@@ -36,7 +35,7 @@ def main():
         ui_status = 1
         print("Start GUI")
     elif args.terminal:
-        ui_status = 0
+        ui_status = 1
         start_chess_master(ui_status)
     elif args.version:
         print(__version__)

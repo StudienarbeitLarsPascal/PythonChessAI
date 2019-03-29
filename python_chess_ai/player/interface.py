@@ -8,6 +8,7 @@
 #
 
 from abc import ABC, ABCMeta, abstractmethod
+from player.user_input import terminal, gui
 
 
 class PlayerInterface(ABC):
@@ -18,7 +19,12 @@ class PlayerInterface(ABC):
         self.num = num
         self.name = name
         self.ui_status = ui_status
-        self.difficulty = difficulty
+
+    def get_ui_type(self, ui_status):
+        return {
+            0: terminal,
+            1: gui
+        }[ui_status]
 
     @abstractmethod
     def get_move(self, board):
