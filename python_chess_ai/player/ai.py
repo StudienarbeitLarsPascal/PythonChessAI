@@ -21,13 +21,13 @@ import errno
 
 OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 
-BOARD_VALUE_FACTOR = 1
-ATTACKED_PIECES_FACTOR = 1/4
-BOARD_POSITIONS_FACTOR = 1
-KING_SAFETY_FACTOR = 2
-OPP_KING_SAFETY_FACTOR = 1/2
-MOBILITY_FACTOR = 1/2
-HISTORY_FACTOR = 1/10
+BOARD_VALUE_FACTOR = 50
+ATTACKED_PIECES_FACTOR = 10
+BOARD_POSITIONS_FACTOR = 10
+KING_SAFETY_FACTOR = 10
+OPP_KING_SAFETY_FACTOR = 4
+MOBILITY_FACTOR = 4
+HISTORY_FACTOR = 2
 
 class Player(PlayerInterface):
 
@@ -45,8 +45,6 @@ class Player(PlayerInterface):
         self.opening_book = self.import_opening_book(OPENING_BOOK_LOC)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
         self.time_limit = self.get_timeout_by_dif(difficulty)
-
-        print(self.board_positions_fact)
         
         self.ui=self.get_ui_type(ui_status).UserInput()
 
@@ -98,15 +96,17 @@ class Player(PlayerInterface):
         current_time = start_time
 
         player = bool(board.turn)
-        print(player)
 
         legal_moves = list(board.legal_moves)
 
         while current_time < end_time:
+            print(depth)
             move_val_dict = {}
 
             best_value = float('-inf')
-            for move in board.legal_moves:
+            best_move = legal_moves[0]
+
+            for move in legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
                 value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time)
@@ -114,22 +114,36 @@ class Player(PlayerInterface):
                 if value >= best_value:
                     best_value = value
                     best_move = move
-            overall_best_move = best_move
             
-            legal_moves.sort(key=move_val_dict.get)
+            legal_moves.sort(key=move_val_dict.get, reverse=True)
             depth += 1
             current_time = int(time.time())
 
-        return overall_best_move
+        tmp_board = chess.Board(str(board.fen()))
+        tmp_board.push(move)
+
+        print("Material: {} * {} = {}".format(EvaluationLib.get_board_value(tmp_board, player), self.board_value_fact, EvaluationLib.get_board_value(tmp_board, player)*self.board_value_fact ))
+        print("Attacked: {} * {} = {}".format(EvaluationLib.get_attacked_pieces_value(tmp_board, player), self.attacked_pieces_fact, EvaluationLib.get_attacked_pieces_value(tmp_board, player)*self.attacked_pieces_fact ))
+        print("Position: {} * {} = {}".format(EvaluationLib.get_board_positions_value(tmp_board, player), self.board_positions_fact, EvaluationLib.get_board_positions_value(tmp_board, player)*self.board_positions_fact ))
+        print("KingZone: {} * {} = {}".format(EvaluationLib.calculate_king_zone_safety(tmp_board, player), self.king_safety_fact, EvaluationLib.calculate_king_zone_safety(tmp_board, player)*self.king_safety_fact ))
+        print("OppKZone: {} * {} = {}".format(EvaluationLib.calculate_opp_king_zone_safety(tmp_board, player), self.opp_king_safety_fact, EvaluationLib.calculate_opp_king_zone_safety(tmp_board, player)*self.opp_king_safety_fact ))
+        print("Mobility: {} * {} = {}".format(EvaluationLib.calculate_mobility_value(tmp_board, player), self.mobility_fact, EvaluationLib.calculate_mobility_value(tmp_board, player)*self.mobility_fact ))
+        print("History:  {} * {} = {}".format(EvaluationLib.get_board_value_by_history(tmp_board, player), self.history_fact, EvaluationLib.get_board_value_by_history(tmp_board, player)*self.history_fact ))
+        
+        print(self.evaluate_board(tmp_board, player))
+        print(best_move)
+        return best_move
 
     @lru_cache(maxsize=256)
     def min_value(self, board_fen, player, alpha, beta, depth, time_limit):
         board = chess.Board(board_fen)
-
-        if board.is_game_over() or depth == 0 or int(time.time() >= time_limit):
-            return self.evaluate_board(board, player)
-
         v = float('inf')
+
+        if board.is_game_over() or depth == 0:
+            return self.evaluate_board(board, player)
+        if int(time.time()) >= time_limit:
+            return float("-inf")
+
         for move in board.legal_moves:
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
@@ -142,11 +156,13 @@ class Player(PlayerInterface):
     @lru_cache(maxsize=256)
     def max_value(self, board_fen, player, alpha, beta, depth, time_limit):
         board = chess.Board(board_fen)
-
-        if board.is_game_over() or depth == 0 or int(time.time() >= time_limit):
-            return self.evaluate_board(board, player)
-
         v = float('-inf')
+
+        if board.is_game_over() or depth == 0:
+            return self.evaluate_board(board, player)
+        if int(time.time()) >= time_limit:
+            return float("inf")
+
         for move in board.legal_moves:
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
@@ -176,7 +192,7 @@ class Player(PlayerInterface):
         time_limit = {
             1: 5,
             2: 10,
-            3: 10
+            3: 30
         }
         return time_limit.get(difficulty)
 

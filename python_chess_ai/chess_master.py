@@ -21,7 +21,7 @@ class ChessMaster:
         repeat = 1
         while repeat == 1:
 
-            board = chess.Board()
+            board = chess.Board("2b5/1p5p/5k2/p1Nr2p1/2N1R1P1/4B3/PPP2P1P/4R1K1 b - - 3 28")
             turn_list = list()
             while not board.is_game_over():
                 current_player = players[int(not board.turn)]
@@ -30,6 +30,7 @@ class ChessMaster:
                 move = current_player.get_move(board)
                 board.push(move)
                 current_player.submit_move(move)
+                print(board.fen())
 
                 turn_list.append(board.fen().split(" ")[0])
 
