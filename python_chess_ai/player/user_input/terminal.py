@@ -31,7 +31,7 @@ PLAYER_TURN_MESSAGE = "\n\nIt's {}'s turn: "
 class UserInput(UserInputInterface):
     def __init__(self):
         super().__init__()
-        self.need_win_support = self.ui_setup_windows()
+        self.need_win_support = self.ensure_windows_compability()
         
     def piece_switcher(self, piece):
         return {
@@ -104,7 +104,7 @@ class UserInput(UserInputInterface):
         field = background_color + colored_chess_piece
         return field
 
-    def get_platform(self):
+    def os_is_windows(self):
         return {
             'linux1' : False,
             'linux2' : False,
@@ -112,8 +112,8 @@ class UserInput(UserInputInterface):
             'win32' : True
         }[sys.platform]
 
-    def ui_setup_windows(self):
-        os_windows = self.get_platform()
+    def ensure_windows_compability(self):
+        os_windows = self.os_is_windows()
         if os_windows:
             init(autoreset=True)
         return os_windows
