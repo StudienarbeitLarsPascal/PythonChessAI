@@ -7,6 +7,8 @@
 # This file provides different basic functions needed in several parts of this program
 #
 
+import chess
+
 WRONG_INPUT_MESSAGE = "Wrong input given. Please repeat."
 
 
@@ -32,3 +34,33 @@ def get_key_with_max_val(key_val_dict):
             max_key = key
             max_val = val
     return max_key
+
+def get_board_result(board):
+    if board.is_variant_loss():
+        return -1 if board.turn == chess.WHITE else 1
+    elif board.is_variant_win():
+        return 1 if board.turn == chess.WHITE else -1
+    elif board.is_variant_draw():
+        return 0
+
+    # Checkmate.
+    if board.is_checkmate():
+        return -1 if board.turn == chess.WHITE else 1
+
+    # Draw claimed.
+    if board.can_claim_draw():
+        return 0
+
+    # Seventyfive-move rule or fivefold repetition.
+    if board.is_seventyfive_moves() or board.is_fivefold_repetition():
+        return 0
+
+    # Insufficient material.
+    if board.is_insufficient_material():
+        return 0
+
+    # Stalemate.
+    if not any(board.generate_legal_moves()):
+        return 0
+    
+    return 0

@@ -330,6 +330,3 @@ def get_board_value_by_history(board, color):
     row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
     value = row['value'].item() if len(row['value']) == 1 else 0
     return value if color is chess.WHITE else -1*value
-
-
-get_board_positions_value(chess.Board(), chess.WHITE)

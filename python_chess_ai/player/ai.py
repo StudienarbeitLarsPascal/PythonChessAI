@@ -21,6 +21,8 @@ import errno
 
 OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
 
+MAX_BOARD_VALUE = float("inf")
+
 BOARD_VALUE_FACTOR = 50
 ATTACKED_PIECES_FACTOR = 10
 BOARD_POSITIONS_FACTOR = 10
@@ -90,12 +92,14 @@ class Player(PlayerInterface):
 
     def iterative_deepening(self, board):
         depth = 1
+        self.counter=0
 
         start_time = int(time.time())
         end_time = start_time + self.time_limit
         current_time = start_time
 
         player = bool(board.turn)
+        self.best_possible_result = self.get_best_possible_result(board, player)
 
         legal_moves = list(board.legal_moves)
 
@@ -111,7 +115,9 @@ class Player(PlayerInterface):
                 tmp_board.push(move)
                 value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time)
                 move_val_dict[move] = value
-                if value >= best_value:
+                if value == MAX_BOARD_VALUE:
+                    return move
+                if value > best_value:
                     best_value = value
                     best_move = move
             
@@ -120,8 +126,7 @@ class Player(PlayerInterface):
             current_time = int(time.time())
 
         tmp_board = chess.Board(str(board.fen()))
-        tmp_board.push(move)
-
+        tmp_board.push(best_move)
         print("Material: {} * {} = {}".format(EvaluationLib.get_board_value(tmp_board, player), self.board_value_fact, EvaluationLib.get_board_value(tmp_board, player)*self.board_value_fact ))
         print("Attacked: {} * {} = {}".format(EvaluationLib.get_attacked_pieces_value(tmp_board, player), self.attacked_pieces_fact, EvaluationLib.get_attacked_pieces_value(tmp_board, player)*self.attacked_pieces_fact ))
         print("Position: {} * {} = {}".format(EvaluationLib.get_board_positions_value(tmp_board, player), self.board_positions_fact, EvaluationLib.get_board_positions_value(tmp_board, player)*self.board_positions_fact ))
@@ -132,6 +137,7 @@ class Player(PlayerInterface):
         
         print(self.evaluate_board(tmp_board, player))
         print(best_move)
+        print(self.counter)
         return best_move
 
     @lru_cache(maxsize=256)
@@ -174,16 +180,35 @@ class Player(PlayerInterface):
 
     def evaluate_board(self, board, player):
         player_color = chess.WHITE if player else chess.BLACK
+        self.counter+=1
+
+        if board.is_game_over():
+            result = Tools.get_board_result(board)
+            if result is self.best_possible_result:
+                return MAX_BOARD_VALUE
+            if result is self.best_possible_result * -1:
+                return -1 * MAX_BOARD_VALUE
+
         evaluation_val = 0
         for func, value in self.evaluation_funcs_dict.items():
             evaluation_val = evaluation_val + value * func(board, player_color)
         return evaluation_val
 
+    def get_best_possible_result(self, board, player):
+        if player and board.has_insufficient_material(chess.WHITE):
+            return 0
+        if not player and board.has_insufficient_material(chess.BLACK):
+            return 0
+        if player and not board.has_insufficient_material(chess.WHITE):
+            return 1
+        if not player and not board.has_insufficient_material(chess.BLACK):
+            return -1
+
     def get_evaluation_funcs_by_dif(self, difficulty):
         funcs_by_deg_of_dif = {
             1: {EvaluationLib.get_board_value: self.board_value_fact},
-            2: {EvaluationLib.get_board_value: self.board_value_fact, EvaluationLib.get_attacked_pieces_value: self.attacked_pieces_fact},
-            3: {EvaluationLib.get_board_value: self.board_value_fact, EvaluationLib.get_attacked_pieces_value: self.attacked_pieces_fact, EvaluationLib.get_board_positions_value: self.board_positions_fact, EvaluationLib.calculate_king_zone_safety: self.king_safety_fact, EvaluationLib.calculate_opp_king_zone_safety: self.opp_king_safety_fact, EvaluationLib.calculate_mobility_value: self.mobility_fact, EvaluationLib.get_board_value_by_history: self.history_fact}
+            2: {EvaluationLib.get_board_value: self.board_value_fact, EvaluationLib.get_attacked_pieces_value: self.attacked_pieces_fact, EvaluationLib.get_board_value_by_history: self.history_fact},
+            3: {EvaluationLib.get_board_value: self.board_value_fact, EvaluationLib.get_attacked_pieces_value: self.attacked_pieces_fact, EvaluationLib.get_board_positions_value: self.board_positions_fact, EvaluationLib.calculate_king_zone_safety: self.king_safety_fact, EvaluationLib.calculate_opp_king_zone_safety: self.opp_king_safety_fact, EvaluationLib.calculate_mobility_value: self.mobility_fact}
         }
         return funcs_by_deg_of_dif.get(difficulty)
 
