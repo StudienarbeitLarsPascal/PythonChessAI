@@ -7,9 +7,9 @@
 # Terminal implementation for user_input interface
 #
 from player.user_input.interface import UserInputInterface
-from misc.tools import Tools
 import sys
 from colorama import init
+import misc.tools as Tools
 from sty import ef, fg, bg, rs
 from colorama import Fore, Back, Style
 

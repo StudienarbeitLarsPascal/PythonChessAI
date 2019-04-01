@@ -10,19 +10,25 @@
 WRONG_INPUT_MESSAGE = "Wrong input given. Please repeat."
 
 
-class Tools():
-    @staticmethod
-    def check_legal_input_string(legal_array, ask_for_input_msg, wrong_input_msg=WRONG_INPUT_MESSAGE):
+def check_legal_input_string(legal_array, ask_for_input_msg, wrong_input_msg=WRONG_INPUT_MESSAGE):
+    user_input = input(ask_for_input_msg)
+    while user_input not in legal_array:
+        print(wrong_input_msg)
         user_input = input(ask_for_input_msg)
-        while user_input not in legal_array:
-            print(wrong_input_msg)
-            user_input = input(ask_for_input_msg)
-        return user_input
+    return user_input
 
-    @staticmethod
-    def check_legal_input_int(legal_array, ask_for_input_msg, wrong_input_msg=WRONG_INPUT_MESSAGE):
+def check_legal_input_int(legal_array, ask_for_input_msg, wrong_input_msg=WRONG_INPUT_MESSAGE):
+    user_input = input(ask_for_input_msg)
+    while not (user_input.isdigit() and int(user_input) in legal_array):
+        print(wrong_input_msg)
         user_input = input(ask_for_input_msg)
-        while not (user_input.isdigit() and int(user_input) in legal_array):
-            print(wrong_input_msg)
-            user_input = input(ask_for_input_msg)
-        return int(user_input)
+    return int(user_input)
+
+def get_key_with_max_val(key_val_dict):
+    max_key = list(key_val_dict.keys())[0]
+    max_val = list(key_val_dict.values())[0]
+    for key, val in key_val_dict.items():
+        if val > max_val:
+            max_key = key
+            max_val = val
+    return max_key
