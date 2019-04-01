@@ -6,26 +6,33 @@
 #
 # Terminal implementation for user_input interface
 #
-
 from player.user_input.interface import UserInputInterface
+import sys
+from colorama import init
 import misc.tools as Tools
 from sty import ef, fg, bg, rs
+from colorama import Fore, Back, Style
 
 FG_BLACK = fg(0, 0, 0)
 FG_WHITE = fg(255, 255,255)
 BG_BLACK = bg(222, 184, 135)
 BG_WHITE = bg(211, 211, 211)
+
+FG_BLACK_WIN = Fore.BLACK
+FG_WHITE_WIN = Fore.RED
+BG_BLACK_WIN = Back.YELLOW
+BG_WHITE_WIN = Back.GREEN
 NUM_TO_ALPHABET = [" ","A", "B", "C", "D", "E", "F", "G", "H"]
 
 ASK_FOR_MOVE_MESSAGE = "Possible Moves: {}\nEnter your move: "
 WRONG_INPUT_MESSAGE = "Given move not in legal moves. Please repeat"
 PLAYER_TURN_MESSAGE = "\n\nIt's {}'s turn: "
 
-
 class UserInput(UserInputInterface):
     def __init__(self):
         super().__init__()
-
+        self.need_win_support = self.ensure_windows_compability()
+        
     def piece_switcher(self, piece):
         return {
             "K": u'\u2654',
@@ -56,23 +63,20 @@ class UserInput(UserInputInterface):
     def print_board(self, player_name, board):
         super().print_board(player_name, board)
         print(PLAYER_TURN_MESSAGE.format(player_name))
-
         board_matrix = self.create_board_matrix(board)
-
         self.print_alphabetical_description()
         for row_index, row in enumerate(board_matrix):
-            print((str(row_index + 1)).center(3), end="")
+            print((str(8 - row_index)).center(3), end="")
             for field_index, field in enumerate(row):
                 field_is_dark = bool((field_index + row_index)% 2)
-                colored_field = self.create_piece(field, field_is_dark)
+                colored_field = self.create_piece(field, field_is_dark) if not self.need_win_support else self.create_piece_win(field, field_is_dark)
                 print(colored_field, end='')
-            print((str(row_index + 1)).center(3))
+            print((str(8 - row_index)).center(3))
         self.print_alphabetical_description()
 
     def create_board_matrix(self, board):
         board_fen = board.fen().split(" ")[0]
         board_matrix = []
-
         for row in board_fen.split("/"):
             line = []
             for character in row:
@@ -91,3 +95,25 @@ class UserInput(UserInputInterface):
         background_color = BG_BLACK if field_is_dark is False else BG_WHITE
         field = background_color + colored_chess_piece + bg.rs
         return field
+
+    def create_piece_win(self, character, field_is_dark):
+        chess_piece = character
+        chess_piece_color = FG_BLACK_WIN if character.isupper() else FG_WHITE_WIN
+        colored_chess_piece = chess_piece_color + chess_piece.center(3)
+        background_color = BG_BLACK_WIN if field_is_dark is False else BG_WHITE_WIN
+        field = background_color + colored_chess_piece
+        return field
+
+    def os_is_windows(self):
+        return {
+            'linux1' : False,
+            'linux2' : False,
+            'darwin' : False,
+            'win32' : True
+        }[sys.platform]
+
+    def ensure_windows_compability(self):
+        os_windows = self.os_is_windows()
+        if os_windows:
+            init(autoreset=True)
+        return os_windows
