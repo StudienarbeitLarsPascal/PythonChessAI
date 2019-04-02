@@ -15,11 +15,13 @@ from functools import lru_cache
 from player.user_input import terminal, gui
 import chess
 import chess.polyglot
+import chess.syzygy
 import time
 import os
 import errno
 
 OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
+SYZYGY_LOC = "res/syzygy"
 
 BOARD_VALUE_FACTOR = 1
 ATTACKED_PIECES_FACTOR = 1/4
@@ -43,6 +45,7 @@ class Player(PlayerInterface):
         self.history_fact = history_fact
 
         self.opening_book = self.import_opening_book(OPENING_BOOK_LOC)
+        self.syzygy = self.import_syzygy(SYZYGY_LOC)
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(difficulty)
         self.time_limit = self.get_timeout_by_dif(difficulty)
 
@@ -52,7 +55,6 @@ class Player(PlayerInterface):
 
     def get_move(self, board):
         super().get_move(board)
-        
         if board.fullmove_number <= 14:
             move = self.get_opening_move(board, self.opening_book)
             if not move is None:
@@ -182,11 +184,28 @@ class Player(PlayerInterface):
 
     def import_opening_book(self, book_location):
         '''
-        load an opening book in class variable `opening_book`
+        load an opening book
         raise an error if system cannot find the opening-book file
         '''
         if os.path.isfile(book_location):
-            return chess.polyglot.open_reader(OPENING_BOOK_LOC)
+            return chess.polyglot.open_reader(book_location)
         else:
             raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+                errno.ENOENT, os.strerror(errno.ENOENT), book_location)
+
+    def import_syzygy(self, syzygy_location):
+        '''
+        load a syzygy tablebase
+        raise an error if system cannot find the file
+        '''
+        if os.path.isdir(syzygy_location):
+            return chess.syzygy.open_tablebase(syzygy_location)
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), syzygy_location)
+    
+    def get_dtz_value(self, tablebase, board):
+        try:
+            return tablebase.probe_dtz(board)
+        except KeyError:
+            return None
