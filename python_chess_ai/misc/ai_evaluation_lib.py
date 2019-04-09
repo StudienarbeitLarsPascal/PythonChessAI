@@ -103,9 +103,9 @@ def get_value_by_color(board, color, count_king=True):
     '''
     sums value of all pieces of given color multiplied with their value
     '''
-    attacked_pieces_value = map(
+    pieces_value = map(
         lambda piece_type: len(board.pieces(piece_type, color)) * assign_piece_value(piece_type, count_king), chess.PIECE_TYPES)
-    return sum(attacked_pieces_value)
+    return sum(pieces_value)
 
 
 def get_board_value(board, color, count_king=True):

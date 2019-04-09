@@ -242,7 +242,8 @@ class Player(PlayerInterface):
 
         evaluation_val = 0
         for func, value in self.evaluation_funcs_dict.items():
-            evaluation_val = evaluation_val + value * func(board, player_color)
+            if value > 0:
+                evaluation_val = evaluation_val + value * func(board, player_color)
         return evaluation_val
 
     def get_best_possible_result(self, board, player):
