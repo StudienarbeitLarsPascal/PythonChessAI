@@ -33,7 +33,7 @@ OPP_KING_SAFETY_FACTOR_START = 4
 MOBILITY_FACTOR_START = 4
 HISTORY_FACTOR_START = 10
 
-MAX_DEPTH_MID = 2
+MAX_DEPTH_MID = 4
 BOARD_VALUE_FACTOR_MID = 50
 ATTACKED_PIECES_FACTOR_MID = 10
 BOARD_POSITIONS_FACTOR_MID = 10
@@ -56,9 +56,9 @@ HISTORY_FACTOR_END = 5
 class Player(PlayerInterface):
 
     def __init__(self, num, name, ui_status, difficulty, 
-        board_value_fact_start = BOARD_VALUE_FACTOR_START, attacked_pieces_fact_start = ATTACKED_PIECES_FACTOR_START, board_positions_fact_start = BOARD_POSITIONS_FACTOR_START, opp_board_positions_fact_start = OPP_BOARD_POSITIONS_FACTOR_START, king_safety_fact_start = KING_SAFETY_FACTOR_START, opp_king_safety_fact_start = OPP_KING_SAFETY_FACTOR_START, mobility_fact_start = MOBILITY_FACTOR_START, history_fact_start = HISTORY_FACTOR_START,
-        board_value_fact_mid = BOARD_VALUE_FACTOR_MID, attacked_pieces_fact_mid = ATTACKED_PIECES_FACTOR_MID, board_positions_fact_mid = BOARD_POSITIONS_FACTOR_MID, opp_board_positions_fact_mid = OPP_BOARD_POSITIONS_FACTOR_MID, king_safety_fact_mid = KING_SAFETY_FACTOR_MID, opp_king_safety_fact_mid = OPP_KING_SAFETY_FACTOR_MID, mobility_fact_mid = MOBILITY_FACTOR_MID, history_fact_mid = HISTORY_FACTOR_MID,
-        board_value_fact_end = BOARD_VALUE_FACTOR_END, attacked_pieces_fact_end = ATTACKED_PIECES_FACTOR_END, board_positions_fact_end = BOARD_POSITIONS_FACTOR_END, opp_board_positions_fact_end = OPP_BOARD_POSITIONS_FACTOR_END, king_safety_fact_end = KING_SAFETY_FACTOR_END, opp_king_safety_fact_end = OPP_KING_SAFETY_FACTOR_END, mobility_fact_end = MOBILITY_FACTOR_END, history_fact_end = HISTORY_FACTOR_END):
+        board_value_fact_start = BOARD_VALUE_FACTOR_START, attacked_pieces_fact_start = ATTACKED_PIECES_FACTOR_START, board_positions_fact_start = BOARD_POSITIONS_FACTOR_START, opp_board_positions_fact_start = OPP_BOARD_POSITIONS_FACTOR_START, king_safety_fact_start = KING_SAFETY_FACTOR_START, opp_king_safety_fact_start = OPP_KING_SAFETY_FACTOR_START, mobility_fact_start = MOBILITY_FACTOR_START, history_fact_start = HISTORY_FACTOR_START, max_depth_start = MAX_DEPTH_START,
+        board_value_fact_mid = BOARD_VALUE_FACTOR_MID, attacked_pieces_fact_mid = ATTACKED_PIECES_FACTOR_MID, board_positions_fact_mid = BOARD_POSITIONS_FACTOR_MID, opp_board_positions_fact_mid = OPP_BOARD_POSITIONS_FACTOR_MID, king_safety_fact_mid = KING_SAFETY_FACTOR_MID, opp_king_safety_fact_mid = OPP_KING_SAFETY_FACTOR_MID, mobility_fact_mid = MOBILITY_FACTOR_MID, history_fact_mid = HISTORY_FACTOR_MID, max_depth_mid = MAX_DEPTH_MID,
+        board_value_fact_end = BOARD_VALUE_FACTOR_END, attacked_pieces_fact_end = ATTACKED_PIECES_FACTOR_END, board_positions_fact_end = BOARD_POSITIONS_FACTOR_END, opp_board_positions_fact_end = OPP_BOARD_POSITIONS_FACTOR_END, king_safety_fact_end = KING_SAFETY_FACTOR_END, opp_king_safety_fact_end = OPP_KING_SAFETY_FACTOR_END, mobility_fact_end = MOBILITY_FACTOR_END, history_fact_end = HISTORY_FACTOR_END, max_depth_end = MAX_DEPTH_END):
         
         super().__init__(num, name, ui_status, difficulty)
         
@@ -70,6 +70,7 @@ class Player(PlayerInterface):
         self.opp_king_safety_fact_start = opp_king_safety_fact_start
         self.mobility_fact_start = mobility_fact_start
         self.history_fact_start = history_fact_start
+        self.max_depth_start = max_depth_start
 
         self.board_value_fact_mid = board_value_fact_mid
         self.attacked_pieces_fact_mid = attacked_pieces_fact_mid
@@ -79,6 +80,7 @@ class Player(PlayerInterface):
         self.opp_king_safety_fact_mid = opp_king_safety_fact_mid
         self.mobility_fact_mid = mobility_fact_mid
         self.history_fact_mid = history_fact_mid
+        self.max_depth_mid = max_depth_mid
 
         self.board_value_fact_end = board_value_fact_end
         self.attacked_pieces_fact_end = attacked_pieces_fact_end
@@ -88,6 +90,7 @@ class Player(PlayerInterface):
         self.opp_king_safety_fact_end = opp_king_safety_fact_end
         self.mobility_fact_end = mobility_fact_end
         self.history_fact_end = history_fact_end
+        self.max_depth_end = max_depth_end
 
         self.difficulty = difficulty
 
@@ -310,9 +313,9 @@ class Player(PlayerInterface):
 
     def get_max_depth_by_game_status(self, game_status):
         return {
-            1: MAX_DEPTH_START, 
-            2: MAX_DEPTH_MID,
-            3: MAX_DEPTH_END
+            1: self.max_depth_start, 
+            2: self.max_depth_mid,
+            3: self.max_depth_end
         }[game_status]
 
     def import_opening_book(self, book_location):
