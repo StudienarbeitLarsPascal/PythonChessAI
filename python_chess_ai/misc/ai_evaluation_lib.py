@@ -79,24 +79,14 @@ def assign_piece_value(piece_type, count_king=True):
     '''
     returns the value of a piece type for the given type
     '''
-    if count_king:
-        return {
-            1: PAWN_VALUE,
-            2: KNIGHT_VALUE,
-            3: BISHOP_VALUE,
-            4: ROOK_VALUE,
-            5: QUEEN_VALUE,
-            6: KING_VALUE
-        }.get(piece_type, 0)
-    else:
-        return {
-            1: PAWN_VALUE,
-            2: KNIGHT_VALUE,
-            3: BISHOP_VALUE,
-            4: ROOK_VALUE,
-            5: QUEEN_VALUE,
-            6: 0
-        }.get(piece_type, 0)
+    return {
+        1: PAWN_VALUE,
+        2: KNIGHT_VALUE,
+        3: BISHOP_VALUE,
+        4: ROOK_VALUE,
+        5: QUEEN_VALUE,
+        6: KING_VALUE if count_king else 0
+    }.get(piece_type, 0)
 
 
 def get_value_by_color(board, color, count_king=True):

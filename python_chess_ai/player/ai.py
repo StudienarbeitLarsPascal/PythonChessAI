@@ -15,11 +15,13 @@ from functools import lru_cache
 from player.user_input import terminal, gui
 import chess
 import chess.polyglot
+import chess.syzygy
 import time
 import os
 import errno
 
 OPENING_BOOK_LOC = "res/polyglot/Performance.bin"
+SYZYGY_LOC = "res/syzygy"
 
 MAX_BOARD_VALUE = float("inf")
 
@@ -95,6 +97,7 @@ class Player(PlayerInterface):
         self.difficulty = difficulty
 
         self.opening_book = self.import_opening_book(OPENING_BOOK_LOC)
+        self.syzygy = self.import_syzygy(SYZYGY_LOC)
         self.time_limit = self.get_timeout_by_dif(difficulty)
         
         self.ui=self.get_ui_type(ui_status).UserInput()
@@ -103,6 +106,7 @@ class Player(PlayerInterface):
         super().get_move(board)
 
         self.game_status = 2
+        evaluation_func = self.evaluate_board
         
         if board.fullmove_number <= 10:
             self.game_status = 1
@@ -114,10 +118,11 @@ class Player(PlayerInterface):
         black_material = EvaluationLib.get_value_by_color(board, chess.BLACK, False)
         if white_material <= 13 and black_material <= 13:
             self.game_status = 3
+            evaluation_func = self.get_dtz_value
         
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(self.game_status, self.difficulty)
 
-        return self.iterative_deepening(board, self.get_max_depth_by_game_status(self.game_status))
+        return self.iterative_deepening(board, self.get_max_depth_by_game_status(self.game_status), evaluation_func)
 
     def submit_move(self, move):
         super().submit_move(move)
@@ -142,8 +147,15 @@ class Player(PlayerInterface):
         else:
             return None
 
+    def get_dtz_value(self, board, player):
+        player_factor = 1 if board.turn == player else -1
+        try:
+            return player_factor * self.syzygy.probe_dtz(board)
+        except KeyError:
+            return None
 
-    def iterative_deepening(self, board, max_depth):
+
+    def iterative_deepening(self, board, max_depth, evaluation_func):
         depth = 1
         self.counter=0
 
@@ -165,7 +177,7 @@ class Player(PlayerInterface):
             for move in legal_moves:
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
-                value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time)
+                value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time, evaluation_func)
                 move_val_dict[move] = value
                 if value == MAX_BOARD_VALUE:
                     return move
@@ -195,38 +207,38 @@ class Player(PlayerInterface):
         return best_move
 
     @lru_cache(maxsize=256)
-    def min_value(self, board_fen, player, alpha, beta, depth, time_limit):
+    def min_value(self, board_fen, player, alpha, beta, depth, time_limit, evaluation_func):
         board = chess.Board(board_fen)
         v = float('inf')
 
         if board.is_game_over() or depth == 0:
-            return self.evaluate_board(board, player)
+            return evaluation_func(board, player)
         if int(time.time()) >= time_limit:
             return float("-inf")
 
         for move in board.legal_moves:
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
-            v = min(v, self.max_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit))
+            v = min(v, self.max_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func))
             if v <= alpha:
                 return v
             beta = min(beta, v)
         return v
 
     @lru_cache(maxsize=256)
-    def max_value(self, board_fen, player, alpha, beta, depth, time_limit):
+    def max_value(self, board_fen, player, alpha, beta, depth, time_limit, evaluation_func):
         board = chess.Board(board_fen)
         v = float('-inf')
 
         if board.is_game_over() or depth == 0:
-            return self.evaluate_board(board, player)
+            return evaluation_func(board, player)
         if int(time.time()) >= time_limit:
             return float("inf")
 
         for move in board.legal_moves:
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
-            v = max(v, self.min_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit))
+            v = max(v, self.min_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func))
             if v >= beta:
                 return v
             alpha = max(alpha, v)
@@ -328,3 +340,14 @@ class Player(PlayerInterface):
         else:
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+
+    def import_syzygy(self, syzygy_location):
+        '''
+        load a syzygy tablebase
+        raise an error if system cannot find the file
+        '''
+        if os.path.isdir(syzygy_location):
+            return chess.syzygy.open_tablebase(syzygy_location)
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), syzygy_location)

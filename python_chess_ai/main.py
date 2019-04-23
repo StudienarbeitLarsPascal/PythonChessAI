@@ -23,6 +23,7 @@ ui_group.add_argument("-g", "--gui", help="starts the GUI", action="store_true")
 parser.add_argument("-v", "--version", help="print the version number and exit", action="store_true")
 args = parser.parse_args()
 
+
 def main():
     if args.terminal or (not (args.gui) and not (args.terminal) and not (args.version)):
         ui_status = 0
