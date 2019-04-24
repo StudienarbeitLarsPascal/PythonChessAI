@@ -351,25 +351,4 @@ class Player(PlayerInterface):
             return chess.syzygy.open_tablebase(syzygy_location)
         else:
             raise FileNotFoundError(
-<<<<<<< HEAD
-                errno.ENOENT, os.strerror(errno.ENOENT), syzygy_location)
-    
-    def get_dtz_value(self, tablebase, board):
-        try:
-            return tablebase.probe_dtz(board)
-        except KeyError:
-            return None
-=======
                 errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
-
-    def import_syzygy(self, syzygy_location):
-        '''
-        load a syzygy tablebase
-        raise an error if system cannot find the file
-        '''
-        if os.path.isdir(syzygy_location):
-            return chess.syzygy.open_tablebase(syzygy_location)
-        else:
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), syzygy_location)
->>>>>>> dev-ai
