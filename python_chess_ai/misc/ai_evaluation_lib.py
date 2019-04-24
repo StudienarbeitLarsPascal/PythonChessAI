@@ -79,33 +79,23 @@ def assign_piece_value(piece_type, count_king=True):
     '''
     returns the value of a piece type for the given type
     '''
-    if count_king:
-        return {
-            1: PAWN_VALUE,
-            2: KNIGHT_VALUE,
-            3: BISHOP_VALUE,
-            4: ROOK_VALUE,
-            5: QUEEN_VALUE,
-            6: KING_VALUE
-        }.get(piece_type, 0)
-    else:
-        return {
-            1: PAWN_VALUE,
-            2: KNIGHT_VALUE,
-            3: BISHOP_VALUE,
-            4: ROOK_VALUE,
-            5: QUEEN_VALUE,
-            6: 0
-        }.get(piece_type, 0)
+    return {
+        1: PAWN_VALUE,
+        2: KNIGHT_VALUE,
+        3: BISHOP_VALUE,
+        4: ROOK_VALUE,
+        5: QUEEN_VALUE,
+        6: KING_VALUE if count_king else 0
+    }.get(piece_type, 0)
 
 
 def get_value_by_color(board, color, count_king=True):
     '''
     sums value of all pieces of given color multiplied with their value
     '''
-    attacked_pieces_value = map(
+    pieces_value = map(
         lambda piece_type: len(board.pieces(piece_type, color)) * assign_piece_value(piece_type, count_king), chess.PIECE_TYPES)
-    return sum(attacked_pieces_value)
+    return sum(pieces_value)
 
 
 def get_board_value(board, color, count_king=True):
@@ -174,9 +164,9 @@ def get_position_value_by_square(board, rank, file, color):
     return piece_pos_value
 
 
-def get_board_positions_value_by_color(board, color):
+def get_board_positions_value(board, color):
     '''
-    returns summed value of all pieces and its positions of one color
+    returns summed value of all pieces and its positions of given color
     '''
     sum = 0
     for rank in range(0,8):
@@ -185,18 +175,15 @@ def get_board_positions_value_by_color(board, color):
             if (piece and piece.color == color):
                 piece_pos_value = get_position_value_by_square(board, rank, file, color)
                 sum += piece_pos_value
-    return sum
-        
+    return sum / 10
 
-def get_board_positions_value(board, color):
+def get_opp_board_positions_value(board, color):
     '''
-    calculates value of white pieces dependent on its position and subtracts value of black pieces dependent on its position
-    returns positive number if given color has an advantage, negative if given color has a disadvantage
+    calculates value for opponent piece positions
+    returns negative value (the lower it is the better for given color)
     '''
-    white_value = get_board_positions_value_by_color(board, chess.WHITE) / 10
-    black_value = get_board_positions_value_by_color(board, chess.BLACK) / 10
-
-    return (white_value - black_value) if color is chess.WHITE else (black_value - white_value)
+    opp_color = chess.WHITE if color is chess.BLACK else chess.BLACK
+    return -1 * get_board_positions_value(board, opp_color)
 
 
 def get_piece_position(board, piece):
@@ -287,9 +274,10 @@ def calculate_opp_king_zone_safety(board, color):
     '''
     calculates value for own pieces attacking enemy king zone
     uses num of attackers, piece type of attackers and num of attacked squares per piece
+    returns negative value (the lower it is the better for given color)
     '''
     opp_color = chess.WHITE if color is chess.BLACK else chess.BLACK
-    return calculate_king_zone_safety(board, opp_color)
+    return -1 * calculate_king_zone_safety(board, opp_color)
 
 
 def get_num_of_legal_moves_by_color(board, color):
@@ -312,12 +300,22 @@ def get_num_of_legal_moves_by_color(board, color):
 def calculate_mobility_value(board, color):
     '''
     returns mobility value (num of possible moves)
-    returns positive number if given color has an advantage, negative if given color has a disadvantage
+    returns positive value if given player has more moves to make, negative if not
     '''
-    white_value = get_num_of_legal_moves_by_color(board, chess.WHITE)
-    black_value = get_num_of_legal_moves_by_color(board, chess.BLACK)
+    player = chess.WHITE if bool(board.turn) else chess.BLACK
+    current_turn_len = len(list(board.legal_moves))
 
-    return (white_value - black_value) / 10 if color is chess.WHITE else (black_value - white_value) / 10
+    if current_turn_len > 0:
+        tmp_board = chess.Board(str(board.fen()))
+        tmp_board.push(list(board.legal_moves)[0])
+        next_turn_len = len(list(tmp_board.legal_moves))
+    else:
+        next_turn_len = 0
+    
+    if player == color:
+        return (current_turn_len - next_turn_len) / 10
+    else:
+        return (next_turn_len - current_turn_len) / 10
 
 
 def get_board_value_by_history(board, color):
@@ -330,6 +328,3 @@ def get_board_value_by_history(board, color):
     row = dataset.loc[dataset['board'] == board.fen().split(" ")[0]]
     value = row['value'].item() if len(row['value']) == 1 else 0
     return value if color is chess.WHITE else -1*value
-
-
-get_board_positions_value(chess.Board(), chess.WHITE)

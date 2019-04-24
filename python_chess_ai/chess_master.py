@@ -9,6 +9,7 @@
 
 import chess
 import pandas as pd
+import misc.tools as Tools
 
 GAME_FINISHED_MESSAGE = "Game finished. You want a rematch? (Type 1 if yes)"
 WRONG_INPUT_MESSAGE = "Wrong input. Please repeat."
@@ -21,7 +22,7 @@ class ChessMaster:
         repeat = 1
         while repeat == 1:
 
-            board = chess.Board("2b5/1p5p/5k2/p1Nr2p1/2N1R1P1/4B3/PPP2P1P/4R1K1 b - - 3 28")
+            board = chess.Board()
             turn_list = list()
             while not board.is_game_over():
                 current_player = players[int(not board.turn)]
@@ -34,12 +35,24 @@ class ChessMaster:
 
                 turn_list.append(board.fen().split(" ")[0])
 
+            current_player = players[int(not board.turn)]
+            current_player.print_board(current_player.name, board)
+            # replace (gui/terminal) - current player win message? all players message?
+
+            result = Tools.get_board_result(board)
+            if result is 1:
+                print("{} (White) has won".format(players[0].name))
+            elif result is -1:
+                print("{} (Black) has won".format(players[1].name))
+            else:
+                print("Draw")
+
             self.groom_board_history(board, turn_list)
             repeat = int(input(GAME_FINISHED_MESSAGE))
 
     def groom_board_history(self, final_board, turn_list):
         # Todo: replace victory status calculation with correct version (draw/player1/player2)
-        victory_status = -1 if final_board.turn else 1
+        victory_status = Tools.get_board_result(final_board)
 
         new_turn_dict = dict.fromkeys(turn_list, victory_status)
         # get existing board history

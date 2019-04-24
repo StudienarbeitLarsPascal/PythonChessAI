@@ -31,7 +31,10 @@ def intialize_parser():
     return parser
 
 def main(args):
-    if args.gui or (not (args.terminal) and not (args.gui) and not (args.version)):
+    if args.terminal or (not (args.gui) and not (args.terminal) and not (args.version)):
+        ui_status = 0
+        start_chess_master(ui_status)
+    elif args.terminal:
         ui_status = 1
         print("Start GUI")
     elif args.terminal:
