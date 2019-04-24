@@ -1,2 +1,4 @@
 python-chess
+colorama
+pandas
 sty
