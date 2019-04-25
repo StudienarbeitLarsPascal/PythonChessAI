@@ -55,6 +55,9 @@ OPP_KING_SAFETY_FACTOR_END = 10
 MOBILITY_FACTOR_END = 10
 HISTORY_FACTOR_END = 5
 
+OPENING_MAX_FULLMOVE_NUM = 6
+FINISHING_MAX_PIECES = 13
+
 class Player(PlayerInterface):
 
     def __init__(self, num, name, ui_status, difficulty, 
@@ -106,10 +109,10 @@ class Player(PlayerInterface):
     def get_move(self, board):
         super().get_move(board)
 
+       
         self.game_status = 2
         evaluation_func = self.evaluate_board
-        
-        if board.fullmove_number <= 10:
+        if board.fullmove_number <= OPENING_MAX_FULLMOVE_NUM:
             self.game_status = 1
             move = self.get_opening_move(board, self.opening_book)
             if not move is None:
@@ -117,7 +120,7 @@ class Player(PlayerInterface):
         
         white_material = EvaluationLib.get_value_by_color(board, chess.WHITE, False)
         black_material = EvaluationLib.get_value_by_color(board, chess.BLACK, False)
-        if white_material <= 13 and black_material <= 13:
+        if white_material <= FINISHING_MAX_PIECES and black_material <= FINISHING_MAX_PIECES:
             self.game_status = 3
             evaluation_func = self.get_dtz_value
         
@@ -169,7 +172,6 @@ class Player(PlayerInterface):
 
         legal_moves = list(board.legal_moves)
         while current_time < end_time and depth <= max_depth:
-            print(depth)
             move_val_dict = {}
 
             best_value = float('-inf')
@@ -190,21 +192,6 @@ class Player(PlayerInterface):
             depth += 1
             current_time = int(time.time())
 
-        tmp_board = chess.Board(str(board.fen()))
-        tmp_board.push(best_move)
-        
-        factor_dict = self.get_factors_by_game_status(self.game_status)
-        
-        print("Material: {} * {} = {}".format(EvaluationLib.get_board_value(tmp_board, player), factor_dict.get("board_value"), EvaluationLib.get_board_value(tmp_board, player)*factor_dict.get("board_value") ))
-        print("Attacked: {} * {} = {}".format(EvaluationLib.get_attacked_pieces_value(tmp_board, player), factor_dict.get("attacked_pieces"), EvaluationLib.get_attacked_pieces_value(tmp_board, player)*factor_dict.get("attacked_pieces") ))
-        print("Position: {} * {} = {}".format(EvaluationLib.get_board_positions_value(tmp_board, player), factor_dict.get("board_position"), EvaluationLib.get_board_positions_value(tmp_board, player)*factor_dict.get("board_position") ))
-        print("EnemyPos: {} * {} = {}".format(EvaluationLib.get_opp_board_positions_value(tmp_board, player), factor_dict.get("opp_board_position"), EvaluationLib.get_board_positions_value(tmp_board, player)*factor_dict.get("opp_board_position") ))
-        print("KingZone: {} * {} = {}".format(EvaluationLib.calculate_king_zone_safety(tmp_board, player), factor_dict.get("king_safety"), EvaluationLib.calculate_king_zone_safety(tmp_board, player)*factor_dict.get("king_safety") ))
-        print("OppKZone: {} * {} = {}".format(EvaluationLib.calculate_opp_king_zone_safety(tmp_board, player), factor_dict.get("opp_king_safety"), EvaluationLib.calculate_opp_king_zone_safety(tmp_board, player)*factor_dict.get("opp_king_safety") ))
-        print("Mobility: {} * {} = {}".format(EvaluationLib.calculate_mobility_value(tmp_board, player), factor_dict.get("mobility"), EvaluationLib.calculate_mobility_value(tmp_board, player)*factor_dict.get("mobility") ))
-        print(self.evaluate_board(tmp_board, player))
-        print(best_move)
-        print("c: {}".format(self.counter))
         return best_move
 
     @lru_cache(maxsize=256)

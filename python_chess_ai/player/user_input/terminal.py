@@ -22,7 +22,7 @@ FG_BLACK_WIN = Fore.BLACK
 FG_WHITE_WIN = Fore.RED
 BG_BLACK_WIN = Back.YELLOW
 BG_WHITE_WIN = Back.GREEN
-NUM_TO_ALPHABET = [" ","A", "B", "C", "D", "E", "F", "G", "H"]
+NUM_TO_ALPHABET = [" ","a", "b", "c", "d", "e", "f", "g", "h"]
 
 ASK_FOR_MOVE_MESSAGE = "Possible Moves: {}\nEnter your move: "
 WRONG_INPUT_MESSAGE = "Given move not in legal moves. Please repeat"
@@ -89,7 +89,7 @@ class UserInput(UserInputInterface):
         return board_matrix
 
     def create_piece(self, character, field_is_dark):
-        chess_piece = str(self.piece_switcher(character))
+        chess_piece = character
         chess_piece_color = FG_BLACK if character.isupper() else FG_WHITE
         colored_chess_piece = chess_piece_color + chess_piece.center(3) + fg.rs
         background_color = BG_BLACK if field_is_dark is False else BG_WHITE
@@ -106,11 +106,12 @@ class UserInput(UserInputInterface):
 
     def os_is_windows(self):
         return {
+            'linux' : False,
             'linux1' : False,
             'linux2' : False,
             'darwin' : False,
             'win32' : True
-        }[sys.platform]
+        }.get(sys.platform, False)
 
     def ensure_windows_compability(self):
         os_windows = self.os_is_windows()
