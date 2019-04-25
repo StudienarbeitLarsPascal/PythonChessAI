@@ -90,7 +90,7 @@ class UserInput(UserInputInterface):
 
     def create_piece(self, character, field_is_dark):
         chess_piece = character
-        chess_piece_color = FG_BLACK if character.isupper() else FG_WHITE
+        chess_piece_color = FG_WHITE if character.isupper() else FG_BLACK
         colored_chess_piece = chess_piece_color + chess_piece.center(3) + fg.rs
         background_color = BG_BLACK if field_is_dark is False else BG_WHITE
         field = background_color + colored_chess_piece + bg.rs
@@ -98,7 +98,7 @@ class UserInput(UserInputInterface):
 
     def create_piece_win(self, character, field_is_dark):
         chess_piece = character
-        chess_piece_color = FG_BLACK_WIN if character.isupper() else FG_WHITE_WIN
+        chess_piece_color = FG_WHITE_WIN if character.isupper() else FG_BLACK_WIN
         colored_chess_piece = chess_piece_color + chess_piece.center(3)
         background_color = BG_BLACK_WIN if field_is_dark is False else BG_WHITE_WIN
         field = background_color + colored_chess_piece
