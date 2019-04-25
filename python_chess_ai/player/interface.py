@@ -19,6 +19,7 @@ class PlayerInterface(ABC):
         self.num = num
         self.name = name
         self.ui_status = ui_status
+        self.ui=self.get_ui_type(ui_status).UserInput()
 
     def get_ui_type(self, ui_status):
         return {
@@ -34,6 +35,5 @@ class PlayerInterface(ABC):
     def submit_move(self, move):
         ...
 
-    @abstractmethod
     def print_board(self, player_name, board):
-        ...
+        self.ui.print_board(player_name, board)

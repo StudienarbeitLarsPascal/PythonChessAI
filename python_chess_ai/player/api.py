@@ -19,6 +19,3 @@ class Player(PlayerInterface):
 
     def submit_move(self, move):
         super().submit_move(move)
-
-    def print_board(self, player_name, board):
-        super().print_board(player_name, board)

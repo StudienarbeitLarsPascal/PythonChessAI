@@ -104,7 +104,6 @@ class Player(PlayerInterface):
 
         self.time_limit = self.get_timeout_by_dif(difficulty)
         
-        self.ui=self.get_ui_type(ui_status).UserInput()
 
     def get_move(self, board):
         super().get_move(board)
@@ -130,10 +129,6 @@ class Player(PlayerInterface):
 
     def submit_move(self, move):
         super().submit_move(move)
-
-    def print_board(self, player_name, board):
-        super().print_board(player_name, board)
-        self.ui.print_board(player_name, board)
 
 
     def get_opening_move(self, board, opening_book):

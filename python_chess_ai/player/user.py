@@ -16,11 +16,6 @@ import chess
 class Player(PlayerInterface):
     def __init__(self, num, name, ui_status, difficulty=None):
         super().__init__(num, name, ui_status, difficulty)
-        self.ui=self.get_ui_type(ui_status).UserInput()
-
-    def print_board(self, player_name, board):
-        super().print_board(player_name, board)
-        self.ui.print_board(player_name, board)
 
     def get_move(self, board):
         super().get_move(board)
