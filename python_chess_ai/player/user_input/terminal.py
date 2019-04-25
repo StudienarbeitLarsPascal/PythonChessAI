@@ -13,10 +13,10 @@ import misc.tools as Tools
 from sty import ef, fg, bg, rs
 from colorama import Fore, Back, Style
 
-FG_BLACK = fg(0, 0, 0)
-FG_WHITE = fg(255, 255,255)
-BG_BLACK = bg(222, 184, 135)
-BG_WHITE = bg(211, 211, 211)
+FG_BLACK = fg(0)
+FG_WHITE = fg(255)
+BG_BLACK = bg(137)
+BG_WHITE = bg(248)
 
 FG_BLACK_WIN = Fore.BLACK
 FG_WHITE_WIN = Fore.RED
