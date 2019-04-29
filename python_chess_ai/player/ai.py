@@ -151,7 +151,7 @@ class Player(PlayerInterface):
         try:
             return player_factor * self.syzygy.probe_dtz(board)
         except KeyError:
-            return None
+            return float('-inf')
 
 
     def iterative_deepening(self, board, max_depth, evaluation_func):

@@ -22,7 +22,7 @@ class ChessMaster:
         repeat = 1
         while repeat == 1:
 
-            board = chess.Board()
+            board = chess.Board("rk6/8/8/1K6/8/8/8/8 w - - 0 1")
             turn_list = list()
             while not board.is_game_over():
                 current_player = players[int(not board.turn)]
