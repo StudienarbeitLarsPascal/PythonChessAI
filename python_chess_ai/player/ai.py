@@ -333,4 +333,4 @@ class Player(PlayerInterface):
             return chess.syzygy.open_tablebase(syzygy_location)
         else:
             raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), OPENING_BOOK_LOC)
+                errno.ENOENT, os.strerror(errno.ENOENT), SYZYGY_LOC)
