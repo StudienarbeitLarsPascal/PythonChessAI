@@ -45,9 +45,10 @@ class SettingsInterface(ABC):
                 player_type = player_types[i]
 
             difficulty = None
-            if player_type == 2 and player_difficulty is None:
+            if ((player_type == 2) or (player_type == "AI")) and player_difficulty is None:
+                print("in if")
                 difficulty = self.get_difficulty(num)
-            elif player_type == 2 and player_difficulty is not None:
+            elif ((player_type == 2) or (player_type == "AI")) and player_difficulty is not None:
                 difficulty = player_difficulty[i]
 
             new_player = PlayerSettings(num, name, player_type, difficulty)

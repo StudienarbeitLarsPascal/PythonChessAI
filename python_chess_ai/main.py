@@ -15,6 +15,73 @@ from colorama import init
 
 __version__ = "0.1-Alpha"
 
+'''
+values ai 1
+'''
+AO_MAX_DEPTH_START = 2
+AO_BOARD_VALUE_FACTOR_START = 50
+AO_ATTACKED_PIECES_FACTOR_START = 10
+AO_BOARD_POSITIONS_FACTOR_START = 10
+AO_OPP_BOARD_POSITIONS_FACTOR_START = 10
+AO_KING_SAFETY_FACTOR_START = 10
+AO_OPP_KING_SAFETY_FACTOR_START = 4
+AO_MOBILITY_FACTOR_START = 4
+AO_HISTORY_FACTOR_START = 10
+
+AO_MAX_DEPTH_MID = 4
+AO_BOARD_VALUE_FACTOR_MID = 50
+AO_ATTACKED_PIECES_FACTOR_MID = 10
+AO_BOARD_POSITIONS_FACTOR_MID = 10
+AO_OPP_BOARD_POSITIONS_FACTOR_MID = 10
+AO_KING_SAFETY_FACTOR_MID = 10
+AO_OPP_KING_SAFETY_FACTOR_MID = 4
+AO_MOBILITY_FACTOR_MID = 4
+AO_HISTORY_FACTOR_MID = 0
+
+AO_MAX_DEPTH_END = 10
+AO_BOARD_VALUE_FACTOR_END = 50
+AO_ATTACKED_PIECES_FACTOR_END = 20
+AO_BOARD_POSITIONS_FACTOR_END = 5
+AO_OPP_BOARD_POSITIONS_FACTOR_END = 2
+AO_KING_SAFETY_FACTOR_END = 5
+AO_OPP_KING_SAFETY_FACTOR_END = 10
+AO_MOBILITY_FACTOR_END = 10
+AO_HISTORY_FACTOR_END = 5
+
+'''
+values ai 2
+'''
+AT_MAX_DEPTH_START = 2
+AT_BOARD_VALUE_FACTOR_START = 50
+AT_ATTACKED_PIECES_FACTOR_START = 10
+AT_BOARD_POSITIONS_FACTOR_START = 10
+AT_OPP_BOARD_POSITIONS_FACTOR_START = 10
+AT_KING_SAFETY_FACTOR_START = 10
+AT_OPP_KING_SAFETY_FACTOR_START = 4
+AT_MOBILITY_FACTOR_START = 4
+AT_HISTORY_FACTOR_START = 10
+
+AT_MAX_DEPTH_MID = 4
+AT_BOARD_VALUE_FACTOR_MID = 50
+AT_ATTACKED_PIECES_FACTOR_MID = 10
+AT_BOARD_POSITIONS_FACTOR_MID = 10
+AT_OPP_BOARD_POSITIONS_FACTOR_MID = 10
+AT_KING_SAFETY_FACTOR_MID = 10
+AT_OPP_KING_SAFETY_FACTOR_MID = 4
+AT_MOBILITY_FACTOR_MID = 4
+AT_HISTORY_FACTOR_MID = 0
+
+AT_MAX_DEPTH_END = 10
+AT_BOARD_VALUE_FACTOR_END = 50
+AT_ATTACKED_PIECES_FACTOR_END = 20
+AT_BOARD_POSITIONS_FACTOR_END = 5
+AT_OPP_BOARD_POSITIONS_FACTOR_END = 2
+AT_KING_SAFETY_FACTOR_END = 5
+AT_OPP_KING_SAFETY_FACTOR_END = 10
+AT_MOBILITY_FACTOR_END = 10
+AT_HISTORY_FACTOR_END = 5
+
+
 # usage argument parser: [-h] [-t | -g] [-p PLAYER PLAYER][-pT {User,AI,Player,Dummy} {User,AI,Player,Dummy}][-pD {0,1,2,3} {0,1,2,3}] [-v]
 def intialize_parser():
     parser = argparse.ArgumentParser()
@@ -31,7 +98,10 @@ def intialize_parser():
     return parser
 
 def main(args):
-    if args.terminal or (not (args.gui) and not (args.terminal) and not (args.version)):
+    if (not (args.gui) and not (args.terminal) and not (args.version)):
+        args.player=['AI1 White', 'AI2 Black']
+        args.player_difficulty=[3, 3]
+        args.player_type=['AI', 'AI']
         ui_status = 0
         start_chess_master(ui_status)
     elif args.terminal:
@@ -48,9 +118,9 @@ def start_chess_master(ui_status):
         settings_ui = ui_switcher(ui_status).Settings()
         player_settings = settings_ui.interrogate_settings(args.player, args.player_type, args.player_difficulty)
         players = []
-        for player_setting in player_settings:
-            type = type_switcher(player_setting.type)
-            players.append(type.Player(player_setting.num, player_setting.name,ui_status, player_setting.difficulty))
+        type = type_switcher(2)
+        players.append(type.Player(player_settings[0].num, player_settings[0].name,ui_status, player_settings[0].difficulty, board_value_fact_start = AO_BOARD_VALUE_FACTOR_START, attacked_pieces_fact_start = AO_ATTACKED_PIECES_FACTOR_START, board_positions_fact_start = AO_BOARD_POSITIONS_FACTOR_START, opp_board_positions_fact_start = AO_OPP_BOARD_POSITIONS_FACTOR_START, king_safety_fact_start = AO_KING_SAFETY_FACTOR_START, opp_king_safety_fact_start = AO_OPP_KING_SAFETY_FACTOR_START, mobility_fact_start = AO_MOBILITY_FACTOR_START, history_fact_start = AO_HISTORY_FACTOR_START, max_depth_start = AO_MAX_DEPTH_START, board_value_fact_mid = AO_BOARD_VALUE_FACTOR_MID, attacked_pieces_fact_mid = AO_ATTACKED_PIECES_FACTOR_MID, board_positions_fact_mid = AO_BOARD_POSITIONS_FACTOR_MID, opp_board_positions_fact_mid = AO_OPP_BOARD_POSITIONS_FACTOR_MID, king_safety_fact_mid = AO_KING_SAFETY_FACTOR_MID, opp_king_safety_fact_mid = AO_OPP_KING_SAFETY_FACTOR_MID, mobility_fact_mid = AO_MOBILITY_FACTOR_MID, history_fact_mid = AO_HISTORY_FACTOR_MID, max_depth_mid = AO_MAX_DEPTH_MID, board_value_fact_end = AO_BOARD_VALUE_FACTOR_END, attacked_pieces_fact_end = AO_ATTACKED_PIECES_FACTOR_END, board_positions_fact_end = AO_BOARD_POSITIONS_FACTOR_END, opp_board_positions_fact_end = AO_OPP_BOARD_POSITIONS_FACTOR_END, king_safety_fact_end = AO_KING_SAFETY_FACTOR_END, opp_king_safety_fact_end = AO_OPP_KING_SAFETY_FACTOR_END, mobility_fact_end = AO_MOBILITY_FACTOR_END, history_fact_end = AO_HISTORY_FACTOR_END, max_depth_end = AO_MAX_DEPTH_END))
+        players.append(type.Player(player_settings[1].num, player_settings[1].name,ui_status, player_settings[1].difficulty, board_value_fact_start = AT_BOARD_VALUE_FACTOR_START, attacked_pieces_fact_start = AT_ATTACKED_PIECES_FACTOR_START, board_positions_fact_start = AT_BOARD_POSITIONS_FACTOR_START, opp_board_positions_fact_start = AT_OPP_BOARD_POSITIONS_FACTOR_START, king_safety_fact_start = AT_KING_SAFETY_FACTOR_START, opp_king_safety_fact_start = AT_OPP_KING_SAFETY_FACTOR_START, mobility_fact_start = AT_MOBILITY_FACTOR_START, history_fact_start = AT_HISTORY_FACTOR_START, max_depth_start = AT_MAX_DEPTH_START, board_value_fact_mid = AT_BOARD_VALUE_FACTOR_MID, attacked_pieces_fact_mid = AT_ATTACKED_PIECES_FACTOR_MID, board_positions_fact_mid = AT_BOARD_POSITIONS_FACTOR_MID, opp_board_positions_fact_mid = AT_OPP_BOARD_POSITIONS_FACTOR_MID, king_safety_fact_mid = AT_KING_SAFETY_FACTOR_MID, opp_king_safety_fact_mid = AT_OPP_KING_SAFETY_FACTOR_MID, mobility_fact_mid = AT_MOBILITY_FACTOR_MID, history_fact_mid = AT_HISTORY_FACTOR_MID, max_depth_mid = AT_MAX_DEPTH_MID, board_value_fact_end = AT_BOARD_VALUE_FACTOR_END, attacked_pieces_fact_end = AT_ATTACKED_PIECES_FACTOR_END, board_positions_fact_end = AT_BOARD_POSITIONS_FACTOR_END, opp_board_positions_fact_end = AT_OPP_BOARD_POSITIONS_FACTOR_END, king_safety_fact_end = AT_KING_SAFETY_FACTOR_END, opp_king_safety_fact_end = AT_OPP_KING_SAFETY_FACTOR_END, mobility_fact_end = AT_MOBILITY_FACTOR_END, history_fact_end = AT_HISTORY_FACTOR_END, max_depth_end = AT_MAX_DEPTH_END))
 
         chess_master = ChessMaster()
         chess_master.start_chess_game(players)
