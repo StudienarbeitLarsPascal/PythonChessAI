@@ -15,7 +15,7 @@ from colorama import init
 
 __version__ = "0.1-Alpha"
 
-# usage argument parser: [-h] [-t | -g] [-p PLAYER PLAYER][-pT {User,AI,Player,Dummy} {User,AI,Player,Dummy}][-pD {0,1,2,3} {0,1,2,3}] [-v]
+# usage argument parser: [-h] [-s | -g] [-p PLAYER PLAYER][-pT {User,AI,Player,Dummy} {User,AI,Player,Dummy}][-pD {0,1,2,3} {0,1,2,3}] [-v]
 def intialize_parser():
     parser = argparse.ArgumentParser()
     ui_group = parser.add_mutually_exclusive_group()
