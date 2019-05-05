@@ -19,7 +19,7 @@ __version__ = "0.1-Alpha"
 def intialize_parser():
     parser = argparse.ArgumentParser()
     ui_group = parser.add_mutually_exclusive_group()
-    ui_group.add_argument("-t", "--terminal", help="starts the terminal ui", action="store_true")
+    ui_group.add_argument("-s", "--settings", help="set the player settings", action="store_true")
     ui_group.add_argument("-g", "--gui", help="starts the GUI", action="store_true")
 
     player_name_type_group = parser.add_argument_group()
@@ -31,13 +31,16 @@ def intialize_parser():
     return parser
 
 def main(args):
-    if args.terminal or (not (args.gui) and not (args.terminal) and not (args.version)):
+    if (not (args.gui) and not (args.settings) and not (args.version)):
+        args.player=['Player', 'AI']
+        args.player_difficulty=[0, 3]
+        args.player_type=['User', 'AI']
         ui_status = 0
         start_chess_master(ui_status)
-    elif args.terminal:
+    elif args.gui:
         ui_status = 1
         print("Start GUI")
-    elif args.terminal:
+    elif args.settings:
         ui_status = 0
         start_chess_master(ui_status)
     elif args.version:
