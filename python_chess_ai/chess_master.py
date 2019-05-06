@@ -31,6 +31,7 @@ class ChessMaster:
                 move = current_player.get_move(board)
                 board.push(move)
                 current_player.submit_move(move)
+                print(board.fen())
 
                 turn_list.append(board.fen().split(" ")[0])
 

@@ -25,21 +25,21 @@ SYZYGY_LOC = "res/syzygy"
 
 MAX_BOARD_VALUE = float("inf")
 
-MAX_DEPTH_START = 2
+MAX_DEPTH_START = 10
 BOARD_VALUE_FACTOR_START = 50
 ATTACKED_PIECES_FACTOR_START = 10
-BOARD_POSITIONS_FACTOR_START = 10
-OPP_BOARD_POSITIONS_FACTOR_START = 10
+BOARD_POSITIONS_FACTOR_START = 100
+OPP_BOARD_POSITIONS_FACTOR_START = 100
 KING_SAFETY_FACTOR_START = 10
 OPP_KING_SAFETY_FACTOR_START = 4
 MOBILITY_FACTOR_START = 4
 HISTORY_FACTOR_START = 10
 
-MAX_DEPTH_MID = 4
+MAX_DEPTH_MID = 10
 BOARD_VALUE_FACTOR_MID = 50
 ATTACKED_PIECES_FACTOR_MID = 10
-BOARD_POSITIONS_FACTOR_MID = 10
-OPP_BOARD_POSITIONS_FACTOR_MID = 10
+BOARD_POSITIONS_FACTOR_MID = 50
+OPP_BOARD_POSITIONS_FACTOR_MID = 50
 KING_SAFETY_FACTOR_MID = 10
 OPP_KING_SAFETY_FACTOR_MID = 4
 MOBILITY_FACTOR_MID = 4
@@ -48,8 +48,8 @@ HISTORY_FACTOR_MID = 0
 MAX_DEPTH_END = 10
 BOARD_VALUE_FACTOR_END = 50
 ATTACKED_PIECES_FACTOR_END = 20
-BOARD_POSITIONS_FACTOR_END = 5
-OPP_BOARD_POSITIONS_FACTOR_END = 2
+BOARD_POSITIONS_FACTOR_END = 20
+OPP_BOARD_POSITIONS_FACTOR_END = 20
 KING_SAFETY_FACTOR_END = 5
 OPP_KING_SAFETY_FACTOR_END = 10
 MOBILITY_FACTOR_END = 10
@@ -106,6 +106,11 @@ class Player(PlayerInterface):
         
         self.ui=self.get_ui_type(ui_status).UserInput()
 
+        self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(2, self.difficulty)
+
+
+        #print(self.evaluate_board(chess.Board("r2q1rk1/1ppbbpp1/2np3p/1p2N3/4N1P1/3P4/PPPB1P1P/R2Q1RK1 b - - 0 15"), True))
+
     def get_move(self, board):
         super().get_move(board)
 
@@ -122,10 +127,15 @@ class Player(PlayerInterface):
         black_material = EvaluationLib.get_value_by_color(board, chess.BLACK, False)
         if white_material <= FINISHING_MAX_PIECES and black_material <= FINISHING_MAX_PIECES:
             self.game_status = 3
-            evaluation_func = self.get_dtz_value
+        
+        pieces_counter_white = sum(len(board.pieces(piece_type, chess.WHITE)) for piece_type in chess.PIECE_TYPES)
+        pieces_counter_black = sum(len(board.pieces(piece_type, chess.BLACK)) for piece_type in chess.PIECE_TYPES)
+
+        if pieces_counter_white + pieces_counter_black <= 5:
+            board.evaluation_func = self.get_dtz_value
         
         self.evaluation_funcs_dict = self.get_evaluation_funcs_by_dif(self.game_status, self.difficulty)
-
+        #return 0
         return self.iterative_deepening(board, self.get_max_depth_by_game_status(self.game_status), evaluation_func)
 
     def submit_move(self, move):
@@ -156,7 +166,7 @@ class Player(PlayerInterface):
         try:
             return player_factor * self.syzygy.probe_dtz(board)
         except KeyError:
-            return None
+            return float('-inf')
 
 
     def iterative_deepening(self, board, max_depth, evaluation_func):
@@ -179,9 +189,22 @@ class Player(PlayerInterface):
             best_move = legal_moves[0]
 
             for move in legal_moves:
+                #print("{} - {}:".format(depth, move))
                 tmp_board = chess.Board(str(board.fen()))
                 tmp_board.push(move)
-                value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time, evaluation_func)
+                flag = False
+                if move == chess.Move.from_uci("b5c6"):
+                    flag = True 
+                if move == chess.Move.from_uci("d3e4"):
+                    flag = True
+                if move == chess.Move.from_uci("c3e4"):
+                    flag = True
+
+                value = self.min_value(str(tmp_board.fen()), player, float('-inf'), float('inf'), depth - 1, end_time, evaluation_func, flag)
+                if value is False:
+                    value = float('-inf')
+                #print(value)
+                print("{}: {}".format(move, value))
                 move_val_dict[move] = value
                 if value == MAX_BOARD_VALUE:
                     return move
@@ -193,6 +216,8 @@ class Player(PlayerInterface):
             depth += 1
             current_time = int(time.time())
 
+        for move, val in move_val_dict.items():
+            print("{} - {}".format(move, val))
         tmp_board = chess.Board(str(board.fen()))	
         tmp_board.push(best_move)	
 
@@ -212,46 +237,70 @@ class Player(PlayerInterface):
         return best_move
 
     @lru_cache(maxsize=256)
-    def min_value(self, board_fen, player, alpha, beta, depth, time_limit, evaluation_func):
+    def min_value(self, board_fen, player, alpha, beta, depth, time_limit, evaluation_func, flag=False):
         board = chess.Board(board_fen)
         v = float('inf')
 
         if board.is_game_over() or depth == 0:
-            return evaluation_func(board, player)
+            e = evaluation_func(board, player)
+            #if flag:
+            #    print("{} - {}".format(board.fen(), e))
+            return e
         if int(time.time()) >= time_limit:
-            return float("-inf")
+            return False
 
         for move in board.legal_moves:
+            #if flag:
+            #    print("{}: {}".format(depth, move))
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
-            v = min(v, self.max_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func))
+            
+            deeper_val = self.max_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func, flag)
+            if deeper_val is False:
+                return False            
+            v = min(v, deeper_val)                
+            
             if v <= alpha:
                 return v
             beta = min(beta, v)
+        #if flag:
+        #    print(v)
+        #    print("----------------")
         return v
 
     @lru_cache(maxsize=256)
-    def max_value(self, board_fen, player, alpha, beta, depth, time_limit, evaluation_func):
+    def max_value(self, board_fen, player, alpha, beta, depth, time_limit, evaluation_func, flag=False):
         board = chess.Board(board_fen)
         v = float('-inf')
 
         if board.is_game_over() or depth == 0:
-            return evaluation_func(board, player)
+            e = evaluation_func(board, player)
+            #if flag:
+              #  print("{} - {}".format(board.fen(), e))
+            return e
         if int(time.time()) >= time_limit:
-            return float("inf")
+            return False
 
         for move in board.legal_moves:
+            #if flag:
+                #print("{}: {}".format(depth, move))
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
-            v = max(v, self.min_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func))
+
+            deeper_val = self.min_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func, flag)
+            if deeper_val is False:
+                return False
+            v = max(v, deeper_val)
             if v >= beta:
                 return v
             alpha = max(alpha, v)
+        #if flag:
+        #    print(v)
+        #    print("----------------")
         return v
 
     def evaluate_board(self, board, player):
         player_color = chess.WHITE if player else chess.BLACK
-        self.counter+=1
 
         if board.is_game_over():
             result = Tools.get_board_result(board)
