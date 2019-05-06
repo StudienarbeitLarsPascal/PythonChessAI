@@ -175,7 +175,7 @@ def get_board_positions_value(board, color):
             if (piece and piece.color == color):
                 piece_pos_value = get_position_value_by_square(board, rank, file, color)
                 sum += piece_pos_value
-    return sum / 10
+    return sum / 100
 
 def get_opp_board_positions_value(board, color):
     '''
@@ -268,7 +268,7 @@ def calculate_king_zone_safety(board, color):
     for attacker in attackers:
         value_of_attack += get_king_attack_constants(attacker.piece_type)
     
-    return (value_of_attack * attack_weight) / 1000
+    return -1 * (value_of_attack * attack_weight) / 1000
 
 def calculate_opp_king_zone_safety(board, color):
     '''
