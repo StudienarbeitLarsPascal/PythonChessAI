@@ -213,7 +213,7 @@ class Player(PlayerInterface):
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
             
-            deeper_val = self.max_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func, flag)
+            deeper_val = self.max_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func)
             if deeper_val is False:
                 return False            
             v = min(v, deeper_val)  
@@ -237,7 +237,7 @@ class Player(PlayerInterface):
             tmp_board = chess.Board(board_fen)
             tmp_board.push(move)
             
-            deeper_val = self.min_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func, flag)
+            deeper_val = self.min_value(str(tmp_board.fen()), player, alpha, beta, depth -1, time_limit, evaluation_func)
             if deeper_val is False:
                 return False
             v = max(v, deeper_val)
