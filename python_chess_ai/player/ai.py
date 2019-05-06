@@ -213,7 +213,7 @@ class Player(PlayerInterface):
                     best_move = move
             
             legal_moves.sort(key=move_val_dict.get, reverse=True)
-            depth += 1
+            depth *= 2
             current_time = int(time.time())
 
         for move, val in move_val_dict.items():
@@ -226,7 +226,7 @@ class Player(PlayerInterface):
         print("Material: {} * {} = {}".format(EvaluationLib.get_board_value(tmp_board, player), factor_dict.get("board_value"), EvaluationLib.get_board_value(tmp_board, player)*factor_dict.get("board_value") ))	
         print("Attacked: {} * {} = {}".format(EvaluationLib.get_attacked_pieces_value(tmp_board, player), factor_dict.get("attacked_pieces"), EvaluationLib.get_attacked_pieces_value(tmp_board, player)*factor_dict.get("attacked_pieces") ))	
         print("Position: {} * {} = {}".format(EvaluationLib.get_board_positions_value(tmp_board, player), factor_dict.get("board_position"), EvaluationLib.get_board_positions_value(tmp_board, player)*factor_dict.get("board_position") ))	
-        print("EnemyPos: {} * {} = {}".format(EvaluationLib.get_opp_board_positions_value(tmp_board, player), factor_dict.get("opp_board_position"), EvaluationLib.get_board_positions_value(tmp_board, player)*factor_dict.get("opp_board_position") ))	
+        print("EnemyPos: {} * {} = {}".format(EvaluationLib.get_opp_board_positions_value(tmp_board, player), factor_dict.get("opp_board_position"), EvaluationLib.get_opp_board_positions_value(tmp_board, player)*factor_dict.get("opp_board_position") ))	
         print("KingZone: {} * {} = {}".format(EvaluationLib.calculate_king_zone_safety(tmp_board, player), factor_dict.get("king_safety"), EvaluationLib.calculate_king_zone_safety(tmp_board, player)*factor_dict.get("king_safety") ))	
         print("OppKZone: {} * {} = {}".format(EvaluationLib.calculate_opp_king_zone_safety(tmp_board, player), factor_dict.get("opp_king_safety"), EvaluationLib.calculate_opp_king_zone_safety(tmp_board, player)*factor_dict.get("opp_king_safety") ))	
         print("Mobility: {} * {} = {}".format(EvaluationLib.calculate_mobility_value(tmp_board, player), factor_dict.get("mobility"), EvaluationLib.calculate_mobility_value(tmp_board, player)*factor_dict.get("mobility") ))	
@@ -339,7 +339,7 @@ class Player(PlayerInterface):
         time_limit = {
             1: 5,
             2: 10,
-            3: 30
+            3: 45
         }
         return time_limit.get(difficulty)
 
