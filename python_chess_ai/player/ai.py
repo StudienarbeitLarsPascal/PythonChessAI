@@ -213,7 +213,7 @@ class Player(PlayerInterface):
                     best_move = move
             
             legal_moves.sort(key=move_val_dict.get, reverse=True)
-            depth += 1
+            depth *= 2
             current_time = int(time.time())
 
         for move, val in move_val_dict.items():
@@ -339,7 +339,7 @@ class Player(PlayerInterface):
         time_limit = {
             1: 5,
             2: 10,
-            3: 30
+            3: 45
         }
         return time_limit.get(difficulty)
 
