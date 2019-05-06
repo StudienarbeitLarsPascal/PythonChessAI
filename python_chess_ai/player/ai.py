@@ -193,7 +193,7 @@ class Player(PlayerInterface):
                     best_move = move
             
             legal_moves.sort(key=move_val_dict.get, reverse=True)
-            depth += 1
+            depth *= 2
             current_time = int(time.time())
 
         return best_move
@@ -285,9 +285,9 @@ class Player(PlayerInterface):
     @staticmethod
     def get_timeout_by_dif(difficulty):
         time_limit = {
-            1: 5,
-            2: 10,
-            3: 30
+            1: 10,
+            2: 20,
+            3: 45
         }
         return time_limit.get(difficulty)
 
